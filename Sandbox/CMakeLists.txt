@@ -2,8 +2,10 @@
 # lógica específica a um projeto aqui.
 #
 
-# Adicione a origem ao executável deste projeto.
-add_executable (DanEngine "DanEngine.cpp" "DanEngine.h")
+# EditorQt
+set(EDITOR_QT_SRC "EditorQt/Qt/QtMain.cpp")
+
+add_executable (DanEngine ${EDITOR_QT_SRC})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET DanEngine PROPERTY CXX_STANDARD 20)
