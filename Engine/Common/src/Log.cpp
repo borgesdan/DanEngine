@@ -3,6 +3,7 @@
 
 namespace Dan {
     std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
+    std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
 
     void Log::Init()
     {
@@ -12,10 +13,12 @@ namespace Dan {
         // %T é a hora, %n é o nome do logger, %v é a mensagem atual
         spdlog::set_pattern("%^[%T] %n: %v%$");
 
-        // Cria um logger colorido e multi-thread (mt) para o console
+        // Inicializa o logger do Core (Engine)
         s_CoreLogger = spdlog::stdout_color_mt("ENGINE");
-
-        // Define o nível mínimo de alerta para exibir as mensagens
         s_CoreLogger->set_level(spdlog::level::trace);
+
+        // Inicializa o logger do Client (Jogo/App)
+        s_ClientLogger = spdlog::stdout_color_mt("APP");
+        s_ClientLogger->set_level(spdlog::level::trace);
     }
 }

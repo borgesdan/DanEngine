@@ -15,20 +15,32 @@ namespace Dan {
 		//Chamado no início do bloco 'main' da aplicação
 		static void Init();
 
-		//Obtém o ponteiro interno do logger.
+		//Obtém o ponteiro interno do logger da Engine (Core).
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return s_CoreLogger; }
-
+		// Obtém o ponteiro interno do logger do Jogo (Client)
+		inline static std::shared_ptr<spdlog::logger>& GetClientLogger() { return s_ClientLogger; }
 	private:
 		static std::shared_ptr<spdlog::logger> s_CoreLogger;
+		static std::shared_ptr<spdlog::logger> s_ClientLogger;
 	};
 }
 
-#endif //DAN_ENGINE_COMMON_LOG_HPP
-
-// Macros para uso interno da Engine. 
-// A macro __VA_ARGS__ permite passar argumentos variáveis para formatação.
+// ========================================================================
+// Macros para uso interno da Engine (Core)
+// ========================================================================
 #define DAN_ENGINE_TRACE(...)    Dan::Log::GetCoreLogger()->trace(__VA_ARGS__)
 #define DAN_ENGINE_INFO(...)     Dan::Log::GetCoreLogger()->info(__VA_ARGS__)
 #define DAN_ENGINE_WARN(...)     Dan::Log::GetCoreLogger()->warn(__VA_ARGS__)
 #define DAN_ENGINE_ERROR(...)    Dan::Log::GetCoreLogger()->error(__VA_ARGS__)
 #define DAN_ENGINE_CRITICAL(...) Dan::Log::GetCoreLogger()->critical(__VA_ARGS__)
+
+// ========================================================================
+// Macros para uso do Jogo (Client)
+// ========================================================================
+#define DAN_CLIENT_TRACE(...)    Dan::Log::GetClientLogger()->trace(__VA_ARGS__)
+#define DAN_CLIENT_INFO(...)     Dan::Log::GetClientLogger()->info(__VA_ARGS__)
+#define DAN_CLIENT_WARN(...)     Dan::Log::GetClientLogger()->warn(__VA_ARGS__)
+#define DAN_CLIENT_ERROR(...)    Dan::Log::GetClientLogger()->error(__VA_ARGS__)
+#define DAN_CLIENT_CRITICAL(...) Dan::Log::GetClientLogger()->critical(__VA_ARGS__)
+
+#endif //DAN_ENGINE_COMMON_LOG_HPP
