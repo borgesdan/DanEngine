@@ -1,0 +1,50 @@
+Parte das configurações de instalação da lib no CMakeLists.txt
+
+# Install
+
+set_target_properties(${DAN_PROJECT_NAME} PROPERTIES
+    EXPORT_NAME ${DAN_PROJECT_NAME}
+)
+
+include(GNUInstallDirs)
+
+install(
+    TARGETS ${DAN_PROJECT_NAME}
+    EXPORT ${DAN_PROJECT_NAME}Targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+    DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+    EXPORT ${DAN_PROJECT_NAME}Targets
+    FILE ${DAN_PROJECT_NAME}Targets.cmake
+    NAMESPACE ${DAN_PROJECT_NAME}::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${DAN_PROJECT_NAME}
+)
+
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/${DAN_PROJECT_NAME}ConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/${DAN_PROJECT_NAME}Config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/${DAN_PROJECT_NAME}Config.cmake"
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${DAN_PROJECT_NAME}
+)
+
+install(
+    FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/${DAN_PROJECT_NAME}Config.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/${DAN_PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${DAN_PROJECT_NAME}
+)

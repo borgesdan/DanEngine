@@ -14,4 +14,5 @@ endif()
 # TODO: Adicione testes e instale destinos, se necessário.
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
-target_link_libraries(DanEngine PRIVATE Qt6::Widgets)
+target_link_libraries(DanEngine 
+	PRIVATE dan-core Qt6::Widgets)
