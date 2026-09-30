@@ -1,20 +1,93 @@
 #include <Dan/Common/Log.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
 
+#include <QApplication>
+#include <QSettings>
+#include <QDir>
+#include <QFileSystemWatcher>
+#include <QPixmap>
+#include <QStringList>
+#include <algorithm>
+
 int main(int argc, char* argv[]) {
+	//Inicializa os subsistemas base(Log antes de qualquer UI)
 	Dan::Log::Init();
+	DAN_ENGINE_INFO("Iniciando Editor...");
 
-    DAN_ENGINE_INFO("Log da Engine inicializado com sucesso.");
-    DAN_ENGINE_WARN("O sistema de renderização ainda não foi implementado.");
+	//Metadados do QCoreApplication
+	QCoreApplication::setOrganizationName("Dan");
+	QCoreApplication::setOrganizationDomain("dan.com");
+	QCoreApplication::setApplicationName("DANENGINE");
+	QSettings::setDefaultFormat(QSettings::IniFormat);
 
-    int modulosCarregados = 5;
-    DAN_ENGINE_TRACE("Módulos de subsistemas carregados: {0}", modulosCarregados);
+	//Inicialização Nativa do Qt (Substitui QMfcApp e AfxWinInit do CryEngine 5.7)
+	QApplication app(argc, argv);
 
-    // 2. Testando o CORE_ASSERT
-    bool subsistemaDeVideoOk = false;
+	//Parse de Argumentos e Configurações Modernas
+	bool bDevMode = false;
+	qsizetype waitForSeconds = 0;
 
-    // Isso irá disparar um Log Crítico no console e pausar a IDE exatamente nesta linha:
-    DAN_CORE_ASSERT(subsistemaDeVideoOk, "Subsistema de vídeo falhou ao inicializar!");
+	//Usar o parse de argumentos embutido do Qt
+	QStringList arglist = app.arguments();
 
-    return 0;
+	int waitIndex = arglist.indexOf("-waitfordebugger");
+    if (waitIndex >= 0 && arglist.size() > static_cast<qsizetype>(waitIndex) + 1)
+	{
+		waitForSeconds = std::max(0, arglist[waitIndex + 1].toInt());
+	}
+
+	int dpiIndex = arglist.indexOf("-nodpiscaling");
+	if (dpiIndex == -1)
+	{
+		QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+	}
+
+	QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
+	QDir::setSearchPaths("icons", QStringList(":/icons"));
+
+    if (waitForSeconds > 0)
+    {
+        DAN_ENGINE_WARN("Aguardando depurador por {0} segundos...", waitForSeconds);
+        // CWaitingForDebuggerDialog timeoutDialog;
+        // timeoutDialog.Execute(waitForSeconds);
+    }
+
+    // 6. Splash Screen nativa do Qt
+    /*
+    QPixmap pixmap(":/splash.png");
+    SplashScreen splash(pixmap);
+    splash.show();
+    app.processEvents();
+    */
+
+    // 7. Instanciação da Janela Principal
+    // CEditorMainFrame* mainFrame = new CEditorMainFrame(nullptr);
+
+    // Reload stylesheet per CryEngine bugfix comment
+    // SetVisualStyle(); 
+
+    // Melhoria: Passar 'app' como parente gerencia a memória automaticamente
+    QFileSystemWatcher* watcher = new QFileSystemWatcher(&app);
+    /*
+    if (!watcher->addPath("caminho_do_seu_estilo.qss")) {
+        DAN_ENGINE_ERROR("Falha ao adicionar stylesheet no watcher");
+    } else {
+        QObject::connect(watcher, &QFileSystemWatcher::fileChanged, UpdateStyleSheet);
+    }
+    */
+
+    // mainFrame->PostLoad();
+    // splash.close();
+    // mainFrame->show();
+
+    DAN_ENGINE_INFO("Entrando no loop de eventos do Qt.");
+
+    // 8. Loop Principal Nativo (Substitui QMfcApp::run)
+    int execReturn = app.exec();
+
+    // 9. Limpeza final
+    // delete mainFrame;
+    DAN_ENGINE_INFO("Editor encerrado com código {0}.", execReturn);
+
+    return execReturn;
 }

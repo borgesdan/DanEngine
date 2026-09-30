@@ -1,6 +1,12 @@
 {
   "dependencies": [
-    "qtbase",
-    "spdlog"
+    "spdlog",
+    {
+      "name": "qtbase",
+      "features": [
+        "widgets",
+        "windeployqt"
+      ]
+    }
   ]
 }

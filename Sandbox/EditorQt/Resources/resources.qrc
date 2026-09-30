@@ -1,0 +1,10 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <!-- A imagem de splash na raiz virtual -->
+        <file>splash.png</file>
+        
+        <!-- Ícones mapeados para busca rápida -->
+        <file>icons/level_file_icon.png</file>
+    </qresource>
+</RCC>
