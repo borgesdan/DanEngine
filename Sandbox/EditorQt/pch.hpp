@@ -22,9 +22,11 @@
 #include <QApplication>
 #include <QDir>
 #include <QFileSystemWatcher>
+#include <QMessageBox>
+#include <QPainter>
 #include <QPixmap>
 #include <QSettings>
 #include <QStringList>
-#include <QPainter>
+#include <QTimer>
 
 #endif

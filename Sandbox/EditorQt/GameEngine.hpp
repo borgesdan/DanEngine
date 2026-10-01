@@ -1,0 +1,5 @@
+namespace Dan {
+	class CGameEngine {
+
+	};
+}

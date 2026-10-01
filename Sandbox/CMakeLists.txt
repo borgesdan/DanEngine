@@ -10,6 +10,7 @@ set(CMAKE_AUTOUIC ON)
 # /EditorQt
 set(EDITOR_QT_SRC 
     "EditorQt/SplashScreen.cpp"
+    "EditorQt/EditorApp.cpp"
 	"EditorQt/Qt/QtMain.cpp"
 	"EditorQt/Resources/resources.qrc"
 )
