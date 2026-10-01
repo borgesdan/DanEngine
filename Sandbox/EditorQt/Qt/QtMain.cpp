@@ -1,13 +1,9 @@
 #include <Dan/Common/Log.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
 
-#include <QApplication>
-#include <QSettings>
-#include <QDir>
-#include <QFileSystemWatcher>
-#include <QPixmap>
-#include <QStringList>
-#include <algorithm>
+#include "../pch.hpp"
+
+#include "../SplashScreen.hpp"
 
 int main(int argc, char* argv[]) {
 	//Inicializa os subsistemas base(Log antes de qualquer UI)
@@ -52,13 +48,12 @@ int main(int argc, char* argv[]) {
         // timeoutDialog.Execute(waitForSeconds);
     }
 
-    // 6. Splash Screen nativa do Qt
-    /*
+    // Splash Screen nativa do Qt    
+    DAN_ENGINE_INFO("Exibe SplashScreen");
     QPixmap pixmap(":/splash.png");
-    SplashScreen splash(pixmap);
+    Dan::SplashScreen splash(pixmap);
     splash.show();
-    app.processEvents();
-    */
+    app.processEvents();    
 
     // 7. Instanciação da Janela Principal
     // CEditorMainFrame* mainFrame = new CEditorMainFrame(nullptr);
