@@ -1,6 +1,7 @@
 {
   "dependencies": [
     "spdlog",
+    "glm",
     {
       "name": "qtbase",
       "features": [
