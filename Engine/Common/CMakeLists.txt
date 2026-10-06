@@ -3,6 +3,8 @@ set(CUR_PROJECT_NAME dan-core)
 set(PROJECT_SRC_FILES 
 "src/Log.cpp"
 "src/Math.cpp"
+"src/EngineCore.cpp"
+"src/Window.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})
@@ -17,11 +19,16 @@ set_target_properties(${CUR_PROJECT_NAME} PROPERTIES
 find_package(spdlog CONFIG REQUIRED)
 # Biblioteca matemática
 find_package(glm CONFIG REQUIRED)
+# SDL
+find_package(SDL3 CONFIG REQUIRED)
 
 target_link_libraries(${CUR_PROJECT_NAME}
     PUBLIC
         spdlog::spdlog
-        glm::glm)
+        glm::glm
+    PRIVATE
+        SDL3::SDL3
+)
 
 # --- Exportação da lib ---
 
