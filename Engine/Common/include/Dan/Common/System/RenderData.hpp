@@ -1,0 +1,31 @@
+#ifndef DAN_RENDERDATA_HPP
+#define DAN_RENDERDATA_HPP
+
+#include "../Math/MathTypes.hpp"
+#include <vector>
+#include <cstdint>
+
+namespace Dan {
+
+    // Representa um único objeto a ser desenhado na tela
+    struct DrawCommand
+    {
+        Math::Mat4 transform; // A matriz de posição/rotação/escala do objeto
+        uint32_t meshId;      // Identificador da malha 3D (vértices)
+        uint32_t materialId;  // Identificador da textura/shader
+    };
+
+    // O pacote de dados enviado da lógica do jogo para a GPU a cada frame
+    struct RenderData
+    {
+        // Matrizes da Câmera ativa
+        Math::Mat4 viewMatrix{ 1.0f };
+        Math::Mat4 projectionMatrix{ 1.0f };
+
+        // Lista de objetos que passaram pelo Frustum Culling e devem ser desenhados
+        std::vector<DrawCommand> drawCommands;
+    };
+
+} // namespace Dan
+
+#endif

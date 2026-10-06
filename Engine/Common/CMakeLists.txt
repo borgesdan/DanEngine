@@ -5,6 +5,7 @@ set(PROJECT_SRC_FILES
 "src/Math.cpp"
 "src/EngineCore.cpp"
 "src/Window.cpp"
+"src/Renderer.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})
@@ -21,6 +22,8 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 # SDL
 find_package(SDL3 CONFIG REQUIRED)
+# bgfx
+find_package(bgfx CONFIG REQUIRED)
 
 target_link_libraries(${CUR_PROJECT_NAME}
     PUBLIC
@@ -28,6 +31,9 @@ target_link_libraries(${CUR_PROJECT_NAME}
         glm::glm
     PRIVATE
         SDL3::SDL3
+        bgfx::bgfx
+        bgfx::bx
+        bgfx::bimg  
 )
 
 # --- Exportação da lib ---

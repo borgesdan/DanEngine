@@ -3,6 +3,7 @@
     "spdlog",
     "glm",
     "sdl3",
+    "bgfx",
     {
       "name": "qtbase",
       "features": [

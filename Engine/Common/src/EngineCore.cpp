@@ -1,18 +1,12 @@
 #include <Dan/Common/System/EngineCore.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
 #include <Dan/Common/System/Window.hpp>
+#include <Dan/Common/System/Renderer.hpp>
 
 namespace Dan {
     //TODO: remover
-    class FileSystem{};
-    
-    class Renderer{
-    public:
-        Renderer(Window* w){}
-        void BeginFrame() {}
-        void Draw(int data) {}
-        void EndFrame() {}
-    };
+    class FileSystem{};   
+   
     class PhysicsSystem{
     public:
         void Update(EngineContext const& context) {}
@@ -21,7 +15,7 @@ namespace Dan {
     class GameFramework{
     public:
         void Update(EngineContext const& context) {}
-        int GetRenderData() { return 0; }
+        RenderData GetRenderData() { return {}; }
     };
 
     EngineCore::EngineCore()
