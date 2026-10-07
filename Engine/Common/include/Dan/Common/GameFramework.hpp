@@ -3,6 +3,7 @@
 
 #include "System/EngineContext.hpp"
 #include "Renderer/RenderData.hpp"
+#include <entt/entt.hpp>
 
 namespace Dan {
     class AssetManager;
@@ -24,14 +25,14 @@ namespace Dan {
         [[nodiscard]] const RenderData& GetRenderData() const noexcept;
 
         // Expõe o registro para que o Editor Qt (via entt::meta) possa ler/editar a cena[cite: 5]
-        //entt::registry& GetRegistry() { return m_registry; }
+        entt::registry& GetRegistry() { return m_registry; }
 
     private:
         void UpdateGameLogic(float deltaTime);
         void BuildRenderData();
 
     private:
-        //entt::registry m_registry;
+        entt::registry m_registry;
         RenderData m_currentRenderData;
         AssetManager* m_assetManager;
     };

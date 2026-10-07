@@ -22,15 +22,18 @@ set_target_properties(${CUR_PROJECT_NAME} PROPERTIES
 find_package(spdlog CONFIG REQUIRED)
 # Biblioteca matemática
 find_package(glm CONFIG REQUIRED)
-# SDL
+# Gerenciamento de janelas e sistemas
 find_package(SDL3 CONFIG REQUIRED)
-# bgfx
+# Gerenciamento de gráficos
 find_package(bgfx CONFIG REQUIRED)
+# Gerenciamento de entidades
+find_package(EnTT CONFIG REQUIRED)
 
 target_link_libraries(${CUR_PROJECT_NAME}
     PUBLIC
         spdlog::spdlog
         glm::glm
+        EnTT::EnTT
     PRIVATE
         SDL3::SDL3
         bgfx::bgfx
