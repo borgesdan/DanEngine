@@ -6,6 +6,8 @@ set(PROJECT_SRC_FILES
 "src/EngineCore.cpp"
 "src/Window.cpp"
 "src/Renderer.cpp"
+"src/Clock.cpp"
+"src/GameFramework.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})

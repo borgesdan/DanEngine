@@ -1,27 +1,23 @@
 #include <Dan/Common/System/EngineCore.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
 #include <Dan/Common/System/Window.hpp>
-#include <Dan/Common/System/Renderer.hpp>
+#include <Dan/Common/Renderer/Renderer.hpp>
+#include <Dan/Common/IO/FileSystem.hpp>
+#include <Dan/Common/Assets/AssetManager.hpp>
+#include <Dan/Common/GameFramework.hpp>
 
-namespace Dan {
-    //TODO: remover
-    class FileSystem{};   
+namespace Dan {  
    
     class PhysicsSystem{
     public:
         void Update(EngineContext const& context) {}
         
-    };
-    class GameFramework{
-    public:
-        void Update(EngineContext const& context) {}
-        RenderData GetRenderData() { return {}; }
-    };
+    };    
 
     EngineCore::EngineCore()
     {
         InitializeSubsystems();
-        m_lastFrameTime = std::chrono::high_resolution_clock::now();
+        m_clock.Reset();
     }
 
     EngineCore::~EngineCore()
@@ -32,20 +28,19 @@ namespace Dan {
 
     void EngineCore::InitializeSubsystems()
     {
-        // 1. FileSystem não depende de nada
+        // 1. O FileSystem é o mais baixo nível, inicializado logo no início
         m_fileSystem = std::make_unique<FileSystem>();
+        m_fileSystem->MountRoot("Assets/");
 
-        // 2. Janela precisa ser criada antes da GPU
+        // 2. O AssetManager é instanciado recebendo o FileSystem bruto
+        m_assetManager = std::make_unique<AssetManager>(m_fileSystem.get());
+
         m_window = std::make_unique<Window>("DanEngine", 1280, 720);
-
-        // 3. Renderizador recebe a janela via Injeção de Dependência (Não usa gEnv!)
         m_renderer = std::make_unique<Renderer>(m_window.get());
 
-        // 4. Física etc.
+        // 3. O GameFramework (e o registro ECS) recebe o AssetManager para carregar os modelos dos inimigos
         m_physics = std::make_unique<PhysicsSystem>();
-
-        // 5. Framework do Jogo
-        m_gameFramework = std::make_unique<GameFramework>();
+        m_gameFramework = std::make_unique<GameFramework>(m_assetManager.get());
     }
 
     void EngineCore::Run()
@@ -66,13 +61,12 @@ namespace Dan {
 
     void EngineCore::ProcessFrame()
     {
-        // Cálculo preciso de DeltaTime com C++ moderno
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<float> elapsedTime = currentTime - m_lastFrameTime;
-        m_lastFrameTime = currentTime;
+        // 1. Atualiza o relógio (Substitui o bloco manual de std::chrono antigo)
+        m_clock.Step();
 
-        m_context.deltaTime = elapsedTime.count();
-        m_context.totalTime += m_context.deltaTime;
+        // 2. Alimenta o contexto que será injetado nos sistemas
+        m_context.time = m_clock.GetGameTime();
+        m_context.frameCount++;
         m_context.frameCount++;
 
         // Atualização sequencial rígida

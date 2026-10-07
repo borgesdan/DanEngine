@@ -3,6 +3,7 @@
 #include <memory>
 #include <chrono>
 #include "EngineContext.hpp"
+#include "../Time/Clock.hpp"
 
 // Stubs dos subsistemas que o Core vai gerenciar via RAII
 // Em C++20, não precisamos importar os cabeçalhos completos aqui, apenas forward declarations.
@@ -12,6 +13,7 @@ namespace Dan {
     class Renderer;
     class PhysicsSystem;
     class GameFramework;
+    class AssetManager;
 }
 
 namespace Dan {
@@ -37,7 +39,7 @@ namespace Dan {
         EngineContext m_context;
 
         // O gerenciamento de tempo agora utiliza a biblioteca chrono nativa do C++11/20
-        std::chrono::high_resolution_clock::time_point m_lastFrameTime;
+        Clock m_clock;
 
         // =========================================================================
         // Inicialização Linear (RAII)
@@ -49,6 +51,7 @@ namespace Dan {
         std::unique_ptr<Window> m_window;
         std::unique_ptr<Renderer> m_renderer;
         std::unique_ptr<PhysicsSystem> m_physics;
+        std::unique_ptr<AssetManager> m_assetManager;
 
         // A camada de jogo que consumirá os subsistemas acima via Injeção de Dependência
         std::unique_ptr<GameFramework> m_gameFramework;
