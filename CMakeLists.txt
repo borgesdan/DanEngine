@@ -14,3 +14,4 @@ project ("DanEngine")
 # Inclua subprojetos.
 add_subdirectory ("Sandbox")
 add_subdirectory ("Engine")
+add_subdirectory ("Tests")

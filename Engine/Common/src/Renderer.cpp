@@ -40,6 +40,8 @@ namespace Dan {
         pd.nwh = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
 #endif	
 
+        initParams.platformData = pd;
+
         if (!bgfx::init(initParams))
         {
             DAN_ENGINE_CRITICAL("Falha ao inicializar o bgfx!");

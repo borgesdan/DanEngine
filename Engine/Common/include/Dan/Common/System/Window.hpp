@@ -30,8 +30,8 @@ namespace Dan {
         [[nodiscard]] SDL_Window* GetNativeWindow() const noexcept { return m_window; }
 
     private:
-        SDL_Window* m_window = nullptr;
-        bool m_shouldClose = false;
+        SDL_Window* m_window{ nullptr };
+        bool m_shouldClose{ false };
     };
 }
 

@@ -11,7 +11,7 @@ namespace Dan {
     class FileSystem
     {
     public:
-        FileSystem();
+        FileSystem() {}
         ~FileSystem() = default;
 
         // Define a pasta raiz de onde os assets serão lidos (ex: "DanEngine/Data")
