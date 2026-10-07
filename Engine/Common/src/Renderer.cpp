@@ -7,38 +7,23 @@
 
 namespace Dan {
 
-    Renderer::Renderer(Window* window) : m_window(window)
+    Renderer::Renderer(void* nativeWindowHandle, void* nativeDisplayHandle, uint32_t width, uint32_t height)
     {
-        DAN_CORE_ASSERT(m_window != nullptr, "Renderizador exige uma janela válida!");
+        DAN_CORE_ASSERT(nativeWindowHandle != nullptr, "Renderizador exige uma janela válida!");
+
+#if DAN_PLATFORM_LINUX
+        DAN_CORE_ASSERT(nativeDisplayHandle != nullptr, "Renderizador exige uma handle do display!");
+#endif
 
         bgfx::Init initParams;
         initParams.type = bgfx::RendererType::Count; // Auto-detecta Vulkan, DX12 ou Metal
-        initParams.resolution.width = 1280;
-        initParams.resolution.height = 720;
+        initParams.resolution.width = width;
+        initParams.resolution.height = height;
         initParams.resolution.reset = BGFX_RESET_VSYNC;
 
         bgfx::PlatformData pd;
-        auto props = SDL_GetWindowProperties(m_window->GetNativeWindow());
-
-#if DAN_PLATFORM_WINDOWS
-        pd.nwh = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
-#elif DAN_PLATFORM_LINUX
-        const char* videoDriver = SDL_GetCurrentVideoDriver();
-
-        if (SDL_strcmp(videoDriver, "x11") == 0) {
-            // No X11, precisamos passar o Display (ndt) e o Window (nwh)
-            pd.ndt = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nullptr);
-            // O Window no X11 é um número (XID), precisamos fazer o cast para void*
-            pd.nwh = (void*)(uintptr_t)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-        }
-        else if (SDL_strcmp(videoDriver, "wayland") == 0) {
-            // No Wayland, passamos o Display e a Surface
-            pd.ndt = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nullptr);
-            pd.nwh = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, nullptr);
-        }
-#elif DAN_PLATFORM_MACOS
-        pd.nwh = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
-#endif	
+        pd.nwh = nativeWindowHandle;
+        pd.ndt = nativeDisplayHandle;
 
         initParams.platformData = pd;
 

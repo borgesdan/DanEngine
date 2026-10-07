@@ -2,8 +2,6 @@
 #include <Dan/Common/Macros/CoreAssert.hpp>
 
 #include "../pch.hpp"
-
-#include "../SplashScreen.hpp"
 #include "../EditorApp.hpp"
 
 int main(int argc, char* argv[]) {
@@ -12,42 +10,9 @@ int main(int argc, char* argv[]) {
 	DAN_ENGINE_INFO("Iniciando Editor...");	
 
 	//Inicialização Nativa do Qt (Substitui QMfcApp e AfxWinInit do CryEngine 5.7)
-	Dan::EditorApp app(argc, argv);
+	Dan::EditorApp app(argc, argv);	
 
-	//Parse de Argumentos e Configurações Modernas	
-	qsizetype waitForSeconds = 0;
-
-	//Usar o parse de argumentos embutido do Qt
-	QStringList arglist = app.arguments();
-
-	int waitIndex = arglist.indexOf("-waitfordebugger");
-	if (waitIndex >= 0 && arglist.size() > static_cast<qsizetype>(waitIndex) + 1)
-	{
-		waitForSeconds = std::max(0, arglist[waitIndex + 1].toInt());
-	}
-
-	int dpiIndex = arglist.indexOf("-nodpiscaling");
-	if (dpiIndex == -1)
-	{
-		QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-	}
-
-	QApplication::setAttribute(Qt::AA_DontCreateNativeWidgetSiblings);
-	QDir::setSearchPaths("icons", QStringList(":/icons"));
-
-	if (waitForSeconds > 0)
-	{
-		DAN_ENGINE_WARN("Aguardando depurador por {0} segundos...", waitForSeconds);
-		// CWaitingForDebuggerDialog timeoutDialog;
-		// timeoutDialog.Execute(waitForSeconds);
-	}
-
-	// Splash Screen
-	DAN_ENGINE_INFO("Exibe SplashScreen");
-	QPixmap pixmap(":/splash.png");
-	Dan::SplashScreen splash(pixmap);
-	splash.show();
-	app.processEvents();	
+	//Removido parse de parametros e splashscreen
 
 	if (!app.Initialize())
 	{
@@ -59,26 +24,6 @@ int main(int argc, char* argv[]) {
 		// e liberará toda a memória do CGameEngine e CEditorImpl graças aos unique_ptr.
 		return 1;
 	}
-
-	// 7. Instanciação da Janela Principal
-	// CEditorMainFrame* mainFrame = new CEditorMainFrame(nullptr);
-
-	// Reload stylesheet per CryEngine bugfix comment
-	// SetVisualStyle(); 
-
-	// Melhoria: Passar 'app' como parente gerencia a memória automaticamente
-	QFileSystemWatcher* watcher = new QFileSystemWatcher(&app);
-	/*
-	if (!watcher->addPath("caminho_do_seu_estilo.qss")) {
-		DAN_ENGINE_ERROR("Falha ao adicionar stylesheet no watcher");
-	} else {
-		QObject::connect(watcher, &QFileSystemWatcher::fileChanged, UpdateStyleSheet);
-	}
-	*/
-
-	// mainFrame->PostLoad();
-	// splash.close();
-	// mainFrame->show();
 
 	DAN_ENGINE_INFO("Entrando no loop de eventos do Qt.");
 

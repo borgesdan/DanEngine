@@ -8,7 +8,8 @@ int main(int argc, char* argv[])
     DAN_ENGINE_INFO("Iniciando projeto console de teste (SDL3 + bgfx)...");
 
     // 2. Instanciação e Inicialização Linear (RAII)
-    Dan::EngineCore engineCore;
+
+    Dan::EngineCore engineCore{};
 
     // 3. Execução do Main Loop
     engineCore.Run();

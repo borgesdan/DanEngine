@@ -16,6 +16,17 @@ namespace Dan {
 	class AssetManager;
 }
 
+// Estrutura moderna para passar configurações de inicialização
+struct EngineInitParams {
+	bool isEditorMode = false;
+	// O HWND/Pointer gerado pelo Viewport do Qt
+	void* nativeWindowHandle = nullptr; 
+	// O handle do display gerado pelo Viewport do Qt
+	void* nativeDisplayHandle = nullptr;
+	uint32_t windowWidth = 1280;
+	uint32_t windowHeight = 720;
+};
+
 namespace Dan {
 
 	// Substitui a interface monolítica ISystem.
@@ -23,19 +34,29 @@ namespace Dan {
 	class EngineCore
 	{
 	public:
-		EngineCore();
+		// O construtor agora recebe os parâmetros (com valor padrão vazio para Standalone)
+		explicit EngineCore(const EngineInitParams& params = {});
 		~EngineCore();
 
-		// Substitui chamadas manuais para DoFrame() e Update()
+		// =========================================================
+		// MODO STANDALONE (Jogo)
+		// =========================================================
+		// Assume o controle da thread e roda o loop infinito
 		void Run();
 		void Stop();
 
-	private:
-		void InitializeSubsystems();
+		// =========================================================
+		// MODO EDITOR (Sandbox / Qt)
+		// =========================================================
+		// Tornado público para ser chamado manualmente via QTimer(0)
 		void ProcessFrame();
 
 	private:
+		void InitializeSubsystems(const EngineInitParams& params);
+
+	private:
 		bool m_isRunning{ false };
+		bool m_isEditorMode{ false };
 		EngineContext m_context;
 
 		// O gerenciamento de tempo agora utiliza a biblioteca chrono nativa do C++11/20
@@ -48,6 +69,7 @@ namespace Dan {
 		// Isso elimina a necessidade da enum ESystemGlobalState e do método Quit().
 		// =========================================================================
 		std::unique_ptr<FileSystem> m_fileSystem;
+		// No modo Editor, este ponteiro permanecerá nullptr
 		std::unique_ptr<Window> m_window;
 		std::unique_ptr<Renderer> m_renderer;
 		std::unique_ptr<PhysicsSystem> m_physics;

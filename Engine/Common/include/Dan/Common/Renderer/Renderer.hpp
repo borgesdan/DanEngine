@@ -5,10 +5,6 @@
 #include "RenderData.hpp"
 
 namespace Dan {
-
-    // Forward declaration da nossa janela SDL3
-    class Window;
-
     // Estrutura que conterá os dados matemáticos (GLM) para desenhar
     struct RenderData;
 
@@ -17,7 +13,7 @@ namespace Dan {
     public:
         // Injeção de dependência: O renderizador precisa conhecer a janela, 
         // mas não consulta um Service Locator global (sem gEnv)
-        explicit Renderer(Window* window);
+        explicit Renderer(void* nativeWindowHandle, void* nativeDisplayHandle, uint32_t width, uint32_t height);
 
         // Destrutor (RAII): Desliga o bgfx automaticamente
         ~Renderer();
@@ -32,7 +28,6 @@ namespace Dan {
         void EndFrame();
 
     private:
-        Window* m_window = nullptr;
         // bgfx::Init m_bgfxInitParams;
     };
 

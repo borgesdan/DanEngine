@@ -22,6 +22,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFileSystemWatcher>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>

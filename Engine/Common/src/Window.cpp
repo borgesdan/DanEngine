@@ -1,6 +1,7 @@
 #include <Dan/Common/System/Window.hpp>
 #include <Dan/Common/Log.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
+#include <Dan/Common/Macros/Platform.hpp>
 
 namespace Dan {
     Window::Window(std::string_view title, int w, int h)
@@ -97,5 +98,33 @@ namespace Dan {
     bool Window::ShouldClose() const noexcept
     {
         return m_shouldClose;
+    }
+
+    WindowNativeHandle Window::GetNativeWindowHandle() const {
+        WindowNativeHandle nHandle;
+
+        auto props = SDL_GetWindowProperties(m_window);
+
+#if DAN_PLATFORM_WINDOWS
+        nHandle.handle = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, NULL);
+#elif DAN_PLATFORM_LINUX
+        const char* videoDriver = SDL_GetCurrentVideoDriver();
+
+        if (SDL_strcmp(videoDriver, "x11") == 0) {
+            // No X11, precisamos passar o Display (ndt) e o Window (nwh)
+            nHandle.display = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nullptr);
+            // O Window no X11 é um número (XID), precisamos fazer o cast para void*
+            nHandle.handle = (void*)(uintptr_t)SDL_GetNumberProperty(props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
+        }
+        else if (SDL_strcmp(videoDriver, "wayland") == 0) {
+            // No Wayland, passamos o Display e a Surface
+            nHandle.display = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nullptr);
+            nHandle.handle = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, nullptr);
+        }
+#elif DAN_PLATFORM_MACOS
+        nHandle.handle = SDL_GetPointerProperty(props, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
+#endif	
+
+        return nHandle;
     }
 }

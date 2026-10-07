@@ -1,12 +1,16 @@
-#include "EditorApp.hpp"
+#include "EditorApp.hpp" // Ajuste para o nome real do seu cabeçalho
 #include "pch.hpp"
 #include <Dan/Common/Log.hpp>
+#include <QMainWindow>
+#include <QTimer>
+#include <QMessageBox>
+#include "ViewportWidget.hpp"
 
 namespace Dan {
 
     EditorApp::EditorApp(int& argc, char** argv) : QApplication(argc, argv), m_singleInstanceLock("DanEngine_Editor_Lock")
     {
-        //Metadados do QCoreApplication
+        // Metadados do QCoreApplication
         QCoreApplication::setOrganizationName("Dan");
         QCoreApplication::setOrganizationDomain("dan.com");
         QCoreApplication::setApplicationName("DANENGINE");
@@ -15,13 +19,13 @@ namespace Dan {
 
     EditorApp::~EditorApp()
     {
-        // A memória de m_pEditor e m_pGameEngine é liberada automaticamente aqui!
-        DAN_ENGINE_INFO("Desligando EditorApp...");
+        // A memória de m_engineCore é liberada automaticamente aqui, 
+        // desligando o bgfx e os subsistemas de forma limpa!
+        DAN_ENGINE_INFO("Desligando EditorApp e destruindo EngineCore...");
     }
 
     bool EditorApp::CheckIfAlreadyRunning()
     {
-        // Substituto multiplataforma para o CreateMutex e GetLastError() == ERROR_ALREADY_EXISTS do CryEdit.cpp
         if (!m_singleInstanceLock.create(1))
         {
             QMessageBox::warning(nullptr, "Já em execução",
@@ -33,7 +37,6 @@ namespace Dan {
 
     void EditorApp::ParseCommandLineArgs()
     {
-        // Substituto moderno para CEditCommandLineInfo e CommandLineToArgvW do CryEdit.cpp
         QCommandLineParser parser;
         QCommandLineOption testOption(QStringList() << "test", "Roda o editor em modo de teste.");
         parser.addOption(testOption);
@@ -53,29 +56,52 @@ namespace Dan {
         ParseCommandLineArgs();
 
         if (!CheckIfAlreadyRunning()) {
-            return false; // Interrompe a inicialização limpidamente
+            return false;
         }
 
-        // Substituto do CCryEditApp::InitGameSystem() do CryEdit.cpp
-        m_pGameEngine = std::make_unique<CGameEngine>();
-        // m_pGameEngine->Init(...); 
+        // 1. Criação da Janela Principal do Editor puramente em Qt
+        QMainWindow* mainWindow = new QMainWindow();
+        mainWindow->setWindowTitle("DanEngine Sandbox");
+        mainWindow->resize(1280, 720);
 
-        // Aloca o gerenciador principal do editor 
-        m_pEditor = std::make_unique<CEditorImpl>();
-        // m_pEditor->Init();
+        // 2. Criação do Viewport que receberá os gráficos da Engine
+        ViewportWidget* viewport = new ViewportWidget(mainWindow);
+        mainWindow->setCentralWidget(viewport);
 
-        // Configura o IdleProcessing para rodar continuamente junto com o Qt
+        // FORÇA a janela a ser exibida antes de inicializar a Engine.
+        // Isso é crucial para que o sistema operacional crie o Handle nativo válido (HWND/XID)
+        mainWindow->show();
+
+        // 3. Configuração dos parâmetros e Inicialização da EngineCore
+        EngineInitParams params;
+        params.isEditorMode = true; // Informa que NÃO devemos criar uma janela SDL3
+        params.nativeWindowHandle = viewport->GetNativeWindowHandle();
+
+        // Se você adicionou o nativeDisplayHandle para Linux como discutimos anteriormente:
+        // params.nativeDisplayHandle = viewport->GetNativeDisplayHandle(); 
+
+        params.windowWidth = viewport->width();
+        params.windowHeight = viewport->height();
+
+        // Instancia a Engine injetando o contexto do Qt
+        m_engineCore = std::make_unique<EngineCore>(params);
+
+        // 4. Configura o IdleProcessing para rodar continuamente junto com o Qt
         QTimer* idleTimer = new QTimer(this);
         connect(idleTimer, &QTimer::timeout, this, &EditorApp::OnIdleUpdate);
-        idleTimer->start(0); // 0ms = Rodar sempre que a interface não estiver travada
+        idleTimer->start(0); // 0ms = O evento timeout dispara sempre que o Qt não tiver nada para processar na fila de eventos
 
         return true;
     }
 
     void EditorApp::OnIdleUpdate()
     {
-        // Substituto do CCryEditApp::IdleProcessing() do CryEdit.cpp
-        // Aqui dentro o m_pGameEngine->Update() seria chamado!
+        // O Qt assumiu o controle da thread (via app.exec() no main).
+        // Para atualizar a Engine sem travar a interface visual, chamamos o processamento de 1 frame por vez.
+        if (m_engineCore)
+        {
+            m_engineCore->ProcessFrame();
+        }
     }
 
 } // namespace Dan
