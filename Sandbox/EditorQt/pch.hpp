@@ -21,7 +21,9 @@
 
 #include <QApplication>
 #include <QDir>
+#include <QDockWidget>
 #include <QFileSystemWatcher>
+#include <QLabel>
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QPainter>

@@ -1,9 +1,6 @@
 #include "EditorApp.hpp" // Ajuste para o nome real do seu cabeçalho
 #include "pch.hpp"
 #include <Dan/Common/Log.hpp>
-#include <QMainWindow>
-#include <QTimer>
-#include <QMessageBox>
 #include "ViewportWidget.hpp"
 
 namespace Dan {
@@ -68,6 +65,23 @@ namespace Dan {
         ViewportWidget* viewport = new ViewportWidget(mainWindow);
         mainWindow->setCentralWidget(viewport);
 
+        // 1. Permite o agrupamento de painéis em abas (Tabbing)
+        mainWindow->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
+
+        // 2. Criação de um painel (Ex: Property Inspector)
+        QDockWidget* inspectorDock = new QDockWidget("Property Inspector", mainWindow);
+        inspectorDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+
+        // Define as permissões do usuário (mover, flutuar, fechar)
+        inspectorDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
+
+        // 3. Adiciona o conteúdo real do painel (Aqui entraria o seu bind do EnTT)
+        QWidget* inspectorContent = new QLabel("Conteúdo do Inspetor de Propriedades via EnTT");
+        inspectorDock->setWidget(inspectorContent);
+
+        // 4. Acopla o painel à janela principal (Ancorado à direita por padrão)
+        mainWindow->addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
+
         // FORÇA a janela a ser exibida antes de inicializar a Engine.
         // Isso é crucial para que o sistema operacional crie o Handle nativo válido (HWND/XID)
         mainWindow->show();
@@ -78,7 +92,7 @@ namespace Dan {
         params.nativeWindowHandle = viewport->GetNativeWindowHandle();
 
         // Se você adicionou o nativeDisplayHandle para Linux como discutimos anteriormente:
-        // params.nativeDisplayHandle = viewport->GetNativeDisplayHandle(); 
+        //params.nativeDisplayHandle = viewport->GetNativeDisplayHandle(); 
 
         params.windowWidth = viewport->width();
         params.windowHeight = viewport->height();
