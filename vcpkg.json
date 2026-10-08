@@ -5,6 +5,7 @@
     "sdl3",
     "bgfx",
     "entt",
+    "assimp",
     {
       "name": "qtbase",
       "features": [

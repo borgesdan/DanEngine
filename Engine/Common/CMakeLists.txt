@@ -29,6 +29,8 @@ find_package(SDL3 CONFIG REQUIRED)
 find_package(bgfx CONFIG REQUIRED)
 # Gerenciamento de entidades
 find_package(EnTT CONFIG REQUIRED)
+# Leitura de modelos 3D primitivos
+find_package(assimp CONFIG REQUIRED)
 
 target_link_libraries(${CUR_PROJECT_NAME}
     PUBLIC
@@ -39,6 +41,7 @@ target_link_libraries(${CUR_PROJECT_NAME}
         bgfx::bgfx
         bgfx::bx
         bgfx::bimg  
+        assimp::assimp
 )
 
 # --- Exportação da lib ---
