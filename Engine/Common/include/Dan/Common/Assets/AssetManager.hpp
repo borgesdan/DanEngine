@@ -20,7 +20,7 @@ namespace Dan {
     {
     public:
         // Injeção de dependência: O AssetManager precisa do FileSystem para ler os bytes
-        explicit AssetManager(FileSystem* fileSystem) {}
+        explicit AssetManager(FileSystem* fileSystem) : m_fileSystem(fileSystem){}
 
         // O famoso Content.Load<T> do XNA em C++20
         template<typename T>
@@ -46,7 +46,9 @@ namespace Dan {
             return newAsset;
         }
 
-        void ClearCache() {}
+        void ClearCache() noexcept {
+            m_assetCache.clear();
+        }
 
     private:
         FileSystem* m_fileSystem = nullptr;

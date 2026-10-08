@@ -4,6 +4,7 @@ set(PROJECT_SRC_FILES
 "src/Log.cpp"
 "src/Math.cpp"
 "src/EngineCore.cpp"
+"src/FileSystem.cpp"
 "src/Window.cpp"
 "src/Renderer.cpp"
 "src/Clock.cpp"
@@ -33,8 +34,7 @@ target_link_libraries(${CUR_PROJECT_NAME}
     PUBLIC
         spdlog::spdlog
         glm::glm
-        EnTT::EnTT
-    PRIVATE
+        EnTT::EnTT    
         SDL3::SDL3
         bgfx::bgfx
         bgfx::bx
