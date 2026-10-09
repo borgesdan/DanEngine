@@ -42,5 +42,8 @@ caso linux:
 --profile spirv (vulkan)
 --profile 150 (opengl) ... 120, 130, 140, 150, 330, 400, 430
 
+## Outras informações
+`bgfx_shader.sh` adicionado na pasta, caso não seja reconhecido na pasta de instalação do bgfx
+
 ## Sobre
 https://bkaradzic.github.io/bgfx/tools.html#shader-compiler-shaderc
