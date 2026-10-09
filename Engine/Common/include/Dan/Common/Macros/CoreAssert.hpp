@@ -1,9 +1,4 @@
-//
-//Macros/CoreAssert.hpp
-//
-
-#ifndef DAN_COMMON_COREASSERT_HPP
-#define DAN_COMMON_COREASSERT_HPP
+#pragma once
 
 #include "../Log.hpp"
 
@@ -40,4 +35,3 @@
 #define DAN_CLIENT_ASSERT(condition, ...) do { } while(false)
 #endif
 
-#endif //DAN_COMMON_COREASSERT_HPP

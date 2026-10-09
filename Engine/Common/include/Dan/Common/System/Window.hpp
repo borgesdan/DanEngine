@@ -1,5 +1,4 @@
-#ifndef DAN_SYSTEM_WINDOW_HPP
-#define DAN_SYSTEM_WINDOW_HPP
+#pragma once
 
 #include <string_view>
 #include <SDL3/SDL.h>
@@ -47,4 +46,3 @@ namespace Dan {
 	};
 }
 
-#endif

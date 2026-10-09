@@ -1,5 +1,4 @@
-#ifndef DAN_MATH_AABB_HPP
-#define DAN_MATH_AABB_HPP
+#pragma once
 
 #include "MathTypes.hpp" // Seu arquivo com os aliases da GLM
 #include <limits>
@@ -79,4 +78,3 @@ namespace Dan::Math {
 
 } // namespace Dan::Math
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef DAN_EDITORQT_EDITORAPP_HPP
-#define DAN_EDITORQT_EDITORAPP_HPP
+#pragma once
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -40,4 +39,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef DAN_MATH_TRANSFORM_HPP
-#define DAN_MATH_TRANSFORM_HPP
+#pragma once
 
 #include "MathTypes.hpp"
 
@@ -61,4 +60,3 @@ namespace Dan::Math {
 
 } // namespace Dan::Math
 
-#endif

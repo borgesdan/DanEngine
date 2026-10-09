@@ -1,5 +1,4 @@
-#ifndef DAN_MATH_ANGLE_HPP
-#define DAN_MATH_ANGLE_HPP
+#pragma once
 
 #include <compare>
 #include <numbers>
@@ -71,4 +70,4 @@ namespace Dan::Math {
     }
 
 } // namespace Dan::Math
-#endif
+

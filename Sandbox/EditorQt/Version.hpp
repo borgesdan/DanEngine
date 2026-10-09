@@ -1,5 +1,4 @@
-#ifndef DAN_EDITORQT_VERSION_HPP
-#define DAN_EDITORQT_VERSION_HPP
+#pragma once
 
 #include <string>
 #include <format>
@@ -51,4 +50,3 @@ namespace Dan {
 
 } 
 
-#endif

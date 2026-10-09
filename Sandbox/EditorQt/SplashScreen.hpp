@@ -1,5 +1,4 @@
-#ifndef DAN_EDITORQT_SPLASHSCREEN_HPP
-#define DAN_EDITORQT_SPLASHSCREEN_HPP
+#pragma once
 
 #include <QSplashScreen>
 #include <QPixmap>
@@ -26,4 +25,3 @@ namespace Dan {
 	};
 }
 
-#endif

@@ -1,5 +1,4 @@
-#ifndef DAN_RENDERDATA_HPP
-#define DAN_RENDERDATA_HPP
+#pragma once
 
 #include "../Math/MathTypes.hpp"
 #include <vector>
@@ -31,4 +30,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

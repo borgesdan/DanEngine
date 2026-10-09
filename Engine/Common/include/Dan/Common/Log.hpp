@@ -1,5 +1,4 @@
-#ifndef DAN_COMMON_LOG_HPP
-#define DAN_COMMON_LOG_HPP
+#pragma once
 
 #include <memory>
 #include <spdlog/spdlog.h>
@@ -43,4 +42,4 @@ namespace Dan {
 #define DAN_CLIENT_ERROR(...)    Dan::Log::GetClientLogger()->error(__VA_ARGS__)
 #define DAN_CLIENT_CRITICAL(...) Dan::Log::GetClientLogger()->critical(__VA_ARGS__)
 
-#endif //DAN_ENGINE_COMMON_LOG_HPP
+

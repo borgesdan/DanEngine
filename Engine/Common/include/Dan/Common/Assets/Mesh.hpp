@@ -1,5 +1,4 @@
-#ifndef DAN_MESH_HPP
-#define DAN_MESH_HPP
+#pragma once
 
 #include "AssetManager.hpp"
 #include "../Math/MathTypes.hpp"
@@ -36,4 +35,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

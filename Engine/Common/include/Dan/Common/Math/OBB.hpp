@@ -1,5 +1,4 @@
-#ifndef DAN_MATH_OBB_HPP
-#define  DAN_MATH_OBB_HPP
+#pragma once
 
 #include "MathTypes.hpp"
 
@@ -18,5 +17,3 @@ namespace Dan::Math {
     };
 
 }
-
-#endif

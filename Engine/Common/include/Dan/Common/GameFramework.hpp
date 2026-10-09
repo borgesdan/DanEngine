@@ -1,5 +1,4 @@
-#ifndef DAN_GAMEFRAMEWORK_HPP
-#define DAN_GAMEFRAMEWORK_HPP
+#pragma once
 
 #include "System/EngineContext.hpp"
 #include "Renderer/RenderData.hpp"
@@ -39,4 +38,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

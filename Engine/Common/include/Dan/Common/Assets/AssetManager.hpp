@@ -1,5 +1,4 @@
-#ifndef DAN_ASSETMANAGER_HPP
-#define DAN_ASSETMANAGER_HPP
+#pragma once
 
 #include <string>
 #include <memory>
@@ -55,4 +54,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

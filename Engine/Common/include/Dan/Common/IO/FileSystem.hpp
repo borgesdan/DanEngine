@@ -1,5 +1,4 @@
-#ifndef DAN_IO_FILESYSTEM_HPP
-#define DAN_IO_FILESYSTEM_HPP
+#pragma once
 
 #include <string>
 #include <vector>
@@ -31,4 +30,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

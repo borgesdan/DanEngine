@@ -1,5 +1,4 @@
-#ifndef DAN_MACROS_PLATFORM_HPP
-#define DAN_MACROS_PLATFORM_HPP
+#pragma once
 
 #if defined(_WIN32)
 #define DAN_PLATFORM_WINDOWS 1
@@ -30,4 +29,3 @@
 #define DAN_PLATFORM_UNIX 0
 #endif
 
-#endif

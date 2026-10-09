@@ -1,5 +1,4 @@
-#ifndef DAN_PCH_HPP
-#define DAN_PCH_HPP
+#pragma once
 
 //
 // Std
@@ -32,4 +31,3 @@
 #include <QStringList>
 #include <QTimer>
 
-#endif

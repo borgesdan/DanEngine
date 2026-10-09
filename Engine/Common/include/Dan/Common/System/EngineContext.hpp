@@ -1,5 +1,4 @@
-#ifndef DAN_SYSTEM_ENGINECONTEXT_HPP
-#define DAN_SYSTEM_ENGINECONTEXT_HPP
+#pragma once
 
 #include <cstdint>
 #include "../Time/GameTime.hpp"
@@ -16,4 +15,4 @@ namespace Dan {
     };
 
 } // namespace Dan
-#endif
+

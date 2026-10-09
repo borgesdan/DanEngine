@@ -1,5 +1,4 @@
-#ifndef DAN_VIEWPORT_WIDGET_HPP
-#define DAN_VIEWPORT_WIDGET_HPP
+#pragma once
 
 #include <QWidget>
 
@@ -25,4 +24,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

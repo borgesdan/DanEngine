@@ -1,5 +1,4 @@
-#ifndef DAN_MESHCOMPONENT_HPP
-#define DAN_MESHCOMPONENT_HPP
+#pragma once
 
 #include <memory>
 #include "../Assets/Mesh.hpp"
@@ -11,5 +10,3 @@ namespace Dan {
 		uint32_t materialId;
 	};
 }
-
-#endif

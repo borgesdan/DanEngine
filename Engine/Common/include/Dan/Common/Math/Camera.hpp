@@ -1,5 +1,5 @@
-#ifndef DAN_MATH_CAMERA_HPP
-#define DAN_MATH_CAMERA_HPP
+#pragma once
+
 #include "MathTypes.hpp"
 
 namespace Dan {
@@ -33,4 +33,3 @@ namespace Dan {
 
 }
 
-#endif

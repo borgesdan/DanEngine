@@ -1,5 +1,4 @@
-#ifndef DAN_CLOCK_HPP
-#define DAN_CLOCK_HPP
+#pragma once
 
 #include "GameTime.hpp"
 #include <chrono>
@@ -35,5 +34,4 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif
 

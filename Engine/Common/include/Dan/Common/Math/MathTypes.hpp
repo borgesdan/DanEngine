@@ -1,5 +1,4 @@
-#ifndef DAN_MATH_MATHTYPES_HPP
-#define DAN_MATH_MATHTYPES_HPP
+#pragma once
 
 // Inclui os tipos base (vetores e matrizes)
 #include <glm/glm.hpp>
@@ -42,4 +41,3 @@ namespace Dan::Math {
     }
 }
 
-#endif

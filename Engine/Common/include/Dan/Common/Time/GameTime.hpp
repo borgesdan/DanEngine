@@ -1,5 +1,4 @@
-#ifndef DAN_GAMETIME_HPP
-#define DAN_GAMETIME_HPP
+#pragma once
 
 namespace Dan {
 
@@ -28,4 +27,3 @@ namespace Dan {
 
 } // namespace Dan
 
-#endif

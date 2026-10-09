@@ -1,5 +1,4 @@
-#ifndef DAN_MACROS_API_HPP
-#define DAN_MACROS_API_HPP
+#pragma once
 
 //Macros para exportação
 #ifdef _WIN32
@@ -19,4 +18,3 @@
 #define DAN_API
 #endif
 
-#endif
