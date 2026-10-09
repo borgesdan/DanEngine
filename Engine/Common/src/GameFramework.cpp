@@ -1,14 +1,9 @@
 #include <Dan/Common/GameFramework.hpp>
 #include <Dan/Common/Math/Transform.hpp>
 #include <Dan/Common/Log.hpp>
+#include <Dan/Common/Components/MeshComponent.hpp>
 
-namespace Dan {
-
-	// Componente temporário de exemplo para representar algo desenhável
-	struct MeshComponent {
-		uint32_t meshId;
-		uint32_t materialId;
-	};
+namespace Dan {	
 
 	GameFramework::GameFramework(AssetManager* assetManager) : m_assetManager(assetManager)
 	{
@@ -24,7 +19,7 @@ namespace Dan {
 		transform.translation = Math::Vec3(0.0f, 0.0f, -5.0f); // 5 unidades para frente
 		m_registry.emplace<Math::Transform>(entity, transform);
 
-		m_registry.emplace<MeshComponent>(entity, MeshComponent{ 1, 1 });
+		m_registry.emplace<MeshComponent>(entity, MeshComponent{ nullptr, 1 });
 	}
 
 	GameFramework::~GameFramework()
@@ -65,14 +60,18 @@ namespace Dan {
 
 		// O método .each() resolve o problema do iterador complexo e 
 		// desempacota a entidade e seus componentes diretamente nas variáveis.
-		for (auto [entity, transform, mesh] : view.each())
+		// Itera usando Structured Bindings otimizado do C++20[cite: 2]
+		for (auto [entity, transform, meshComp] : view.each())
 		{
-			DrawCommand cmd;
+			if (!meshComp.meshAsset) continue;
 
-			// Agora você usa as variáveis 'transform' e 'mesh' diretamente, sem precisar de view.get()
+			DrawCommand cmd{};
 			cmd.transform = transform.GetMatrix();
-			cmd.meshId = mesh.meshId;
-			cmd.materialId = mesh.materialId;
+
+			// Passamos os handles da GPU (BGFX) gerados pela Assimp diretamente para o RenderData
+			cmd.vbh = meshComp.meshAsset->GetVertexBuffer().idx; // Ajuste na struct DrawCommand para receber VBH/IBH numéricos
+			cmd.ibh = meshComp.meshAsset->GetIndexBuffer().idx;
+			cmd.materialId = meshComp.materialId;
 
 			m_currentRenderData.drawCommands.push_back(cmd);
 		}

@@ -4,6 +4,7 @@
 #include "../Math/MathTypes.hpp"
 #include <vector>
 #include <cstdint>
+#include <bgfx/bgfx.h>
 
 namespace Dan {
 
@@ -13,6 +14,8 @@ namespace Dan {
         Math::Mat4 transform; // A matriz de posição/rotação/escala do objeto
         uint32_t meshId;      // Identificador da malha 3D (vértices)
         uint32_t materialId;  // Identificador da textura/shader
+        uint16_t vbh;
+        uint16_t ibh;
     };
 
     // O pacote de dados enviado da lógica do jogo para a GPU a cada frame

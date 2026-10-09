@@ -8,6 +8,7 @@ set(PROJECT_SRC_FILES
 "src/Window.cpp"
 "src/Renderer.cpp"
 "src/Clock.cpp"
+"src/Mesh.cpp"
 "src/GameFramework.cpp"
 )
 
