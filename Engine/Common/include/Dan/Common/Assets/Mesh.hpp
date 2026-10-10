@@ -3,6 +3,7 @@
 #include "AssetManager.hpp"
 #include "../Math/MathTypes.hpp"
 #include <vector>
+#include <string>
 #include <bgfx/bgfx.h>
 
 namespace Dan {
@@ -23,7 +24,7 @@ namespace Dan {
         ~Mesh() override;
 
         // O ContentReader esperado pelo seu AssetManager::Load<T>
-        static std::shared_ptr<Mesh> CreateFromBytes(const std::vector<uint8_t>& bytes, const std::string& extensionHint);
+        static std::shared_ptr<Mesh> CreateFromBytes(const std::vector<uint8_t>& bytes, const std::string& virtualPath);
 
         bgfx::VertexBufferHandle GetVertexBuffer() const { return m_vbh; }
         bgfx::IndexBufferHandle GetIndexBuffer() const { return m_ibh; }

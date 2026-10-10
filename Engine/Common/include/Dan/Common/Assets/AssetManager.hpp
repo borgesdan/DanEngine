@@ -36,7 +36,7 @@ namespace Dan {
 
 			// 3. Invoca o "ContentReader" específico para o tipo T.
 			// Em C++, delegamos isso para um método estático da própria classe do Asset.
-			std::shared_ptr<T> newAsset = T::CreateFromBytes(rawBytes);
+			std::shared_ptr<T> newAsset = T::CreateFromBytes(rawBytes, path);
 
 			// 4. Salva no cache e retorna
 			m_assetCache[cacheKey] = newAsset;

@@ -44,14 +44,14 @@ namespace Dan {
 
 			// O ideal agora é que o Renderer receba o Handle Nativo em vez do ponteiro da classe Window
 			auto handle = m_window->GetNativeWindowHandle(); // Requer que você crie esse método na classe Window
-			m_renderer = std::make_unique<Renderer>(handle.handle, handle.display, params.windowWidth, params.windowHeight);
+			m_renderer = std::make_unique<Renderer>(handle.handle, handle.display, params.windowWidth, params.windowHeight, m_fileSystem.get());
 		}
 		else
 		{
 			// Editor: Janela SDL3 ignorada. Usa o Handle do Qt.
 			// Aqui usamos a macro do seu Logger/Assert
 			// DAN_CORE_ASSERT(params.nativeWindowHandle != nullptr, "Handle nulo no modo Editor!");
-			m_renderer = std::make_unique<Renderer>(params.nativeWindowHandle, params.nativeDisplayHandle, params.windowWidth, params.windowHeight);
+			m_renderer = std::make_unique<Renderer>(params.nativeWindowHandle, params.nativeDisplayHandle, params.windowWidth, params.windowHeight, m_fileSystem.get());
 		}
 
 		m_physics = std::make_unique<PhysicsSystem>();

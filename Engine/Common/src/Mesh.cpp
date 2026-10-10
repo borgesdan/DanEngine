@@ -22,8 +22,11 @@ namespace Dan {
         if (bgfx::isValid(m_ibh)) bgfx::destroy(m_ibh);
     }
 
-    std::shared_ptr<Mesh> Mesh::CreateFromBytes(const std::vector<uint8_t>& bytes, const std::string& extensionHint) {
+    std::shared_ptr<Mesh> Mesh::CreateFromBytes(const std::vector<uint8_t>& bytes, const std::string& virtualPath) {
         Assimp::Importer importer;
+
+        // Extrai a extensão automaticamente (ex: ".obj")
+        std::string ext = std::filesystem::path(virtualPath).extension().string();
 
         // Flags de otimização de pipeline 3D padrão da indústria
         const unsigned int importFlags =
@@ -37,7 +40,7 @@ namespace Dan {
             bytes.data(),
             bytes.size(),
             importFlags,
-            extensionHint.c_str() // Ex: "obj" ou "fbx" para ajudar o parser da Assimp
+            ext.c_str() // Ex: "obj" ou "fbx" para ajudar o parser da Assimp
         );
 
         DAN_CORE_ASSERT(scene && scene->HasMeshes(), importer.GetErrorString());
@@ -80,12 +83,12 @@ namespace Dan {
         auto finalMesh = std::make_shared<Mesh>();
 
         finalMesh->m_vbh = bgfx::createVertexBuffer(
-            bgfx::makeRef(vertices.data(), vertices.size() * sizeof(Vertex)),
+            bgfx::copy(vertices.data(), vertices.size() * sizeof(Vertex)),
             Vertex::GetLayout()
         );
 
         finalMesh->m_ibh = bgfx::createIndexBuffer(
-            bgfx::makeRef(indices.data(), indices.size() * sizeof(uint16_t))
+            bgfx::copy(indices.data(), indices.size() * sizeof(uint16_t))
         );
 
         return finalMesh;

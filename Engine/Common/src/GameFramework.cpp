@@ -1,6 +1,7 @@
 #include <Dan/Common/GameFramework.hpp>
 #include <Dan/Common/Math/Transform.hpp>
 #include <Dan/Common/Log.hpp>
+#include <Dan/Common/Macros/CoreAssert.hpp>
 #include <Dan/Common/Components/MeshComponent.hpp>
 
 namespace Dan {	
@@ -8,18 +9,19 @@ namespace Dan {
 	GameFramework::GameFramework(AssetManager* assetManager) : m_assetManager(assetManager)
 	{
 		DAN_ENGINE_INFO("GameFramework inicializado.");
-
-		// ==========================================================
-		// Mock: Criando uma entidade de teste na cena
-		// O Editor Qt fará isso dinamicamente no futuro[cite: 5].
-		// ==========================================================
+		
 		auto entity = m_registry.create();
 
 		Math::Transform transform;
 		transform.translation = Math::Vec3(0.0f, 0.0f, -5.0f); // 5 unidades para frente
 		m_registry.emplace<Math::Transform>(entity, transform);
 
-		m_registry.emplace<MeshComponent>(entity, MeshComponent{ nullptr, 1 });
+		//TODO: remover
+		// Carrega o modelo de teste (certifique-se de ter um arquivo '.obj' válido na pasta Assets)
+		// Passamos a extensão ".obj" como dica para a Assimp ler da memória corretamente
+		auto cubeMesh = assetManager->Load<Mesh>("C:\\Users\\borge\\source\\repos\\DanEngine\\Engine\\Common\\assets\\box.obj");
+		DAN_CORE_ASSERT(cubeMesh, "Falha ao carregar box.obj");
+		m_registry.emplace<MeshComponent>(entity, MeshComponent{ cubeMesh , 1 });
 	}
 
 	GameFramework::~GameFramework()
