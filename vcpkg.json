@@ -6,6 +6,7 @@
     "bgfx",
     "entt",
     "assimp",
+    "stb",
     {
       "name": "qtbase",
       "features": [

@@ -8,7 +8,7 @@
 
 namespace Dan {	
 
-	GameFramework::GameFramework(AssetManager* assetManager) // Removido : m_assetManager(assetManager) se não for guardar na classe
+	GameFramework::GameFramework(AssetManager* assetManager) 
 	{
 		DAN_ENGINE_INFO("GameFramework inicializado.");
 
@@ -33,8 +33,11 @@ namespace Dan {
 		auto fsMesh = assetManager->Load<Shader>("Shaders/fs_mesh.bin");
 		DAN_CORE_ASSERT(fsMesh, "Falha ao carregar Fragment Shader");
 
+		auto texture = assetManager->Load<Texture2D>("Textures/texture.jpg");
+		DAN_CORE_ASSERT(texture, "Falha ao carregar a textura");
+
 		// Cria o material agrupando os dois shaders
-		auto cubeMaterial = std::make_shared<Material>(vsMesh, fsMesh);
+		auto cubeMaterial = std::make_shared<Material>(vsMesh, fsMesh, texture);
 
 		// Atribui o componente modernizado à entidade, passando a Malha e o Material reais
 		m_registry.emplace<MeshComponent>(entity, MeshComponent{ cubeMesh, cubeMaterial });
@@ -125,15 +128,17 @@ namespace Dan {
 		// Itera usando Structured Bindings otimizado do C++20[cite: 2]
 		for (auto [entity, transform, meshComp] : view.each())
 		{
-			if (!meshComp.meshAsset) continue;
+			if (!meshComp.meshAsset || !meshComp.material) continue;
 
 			DrawCommand cmd{};
 			cmd.transform = transform.GetMatrix();
-
-			// Passamos os handles da GPU (BGFX) gerados pela Assimp diretamente para o RenderData
-			cmd.vbh = meshComp.meshAsset->GetVertexBuffer().idx; // Ajuste na struct DrawCommand para receber VBH/IBH numéricos
+			cmd.vbh = meshComp.meshAsset->GetVertexBuffer().idx;
 			cmd.ibh = meshComp.meshAsset->GetIndexBuffer().idx;
+
+			// IDs do Material
 			cmd.programId = meshComp.material->GetProgram().idx;
+			cmd.textureId = meshComp.material->GetTextureHandle().idx;
+			cmd.samplerId = meshComp.material->GetSamplerHandle().idx;
 
 			m_currentRenderData.drawCommands.push_back(cmd);
 		}

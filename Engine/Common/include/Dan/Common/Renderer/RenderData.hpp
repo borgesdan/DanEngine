@@ -14,6 +14,8 @@ namespace Dan {
         uint16_t programId;;  // Identificador da textura/shader
         uint16_t vbh;
         uint16_t ibh;
+        uint16_t textureId;
+        uint16_t samplerId;
     };
 
     // O pacote de dados enviado da lógica do jogo para a GPU a cada frame

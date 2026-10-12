@@ -11,6 +11,7 @@ set(PROJECT_SRC_FILES
 "src/Mesh.cpp"
 "src/GameFramework.cpp"
 "src/Shader.cpp"
+"src/Texture2D.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})
@@ -33,6 +34,9 @@ find_package(bgfx CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 # Leitura de modelos 3D primitivos
 find_package(assimp CONFIG REQUIRED)
+# Leitura e carregamento de imagens
+find_path(STB_INCLUDE_DIRS "stb_image.h")
+target_include_directories(dan-core PRIVATE ${STB_INCLUDE_DIRS})
 
 target_link_libraries(${CUR_PROJECT_NAME}
     PUBLIC

@@ -78,6 +78,14 @@ namespace Dan {
 
             // Reconverte o ID numérico para o Handle tipado do bgfx e submete
             bgfx::ProgramHandle program = { cmd.programId };
+            bgfx::TextureHandle texture = { cmd.textureId };
+            bgfx::UniformHandle sampler = { cmd.samplerId };
+
+            // Vincula a textura ao slot 0 usando o sampler do material
+            if (bgfx::isValid(texture) && bgfx::isValid(sampler)) {
+                bgfx::setTexture(0, sampler, texture);
+            }
+
             bgfx::submit(0, program);
         }
     }
