@@ -11,8 +11,7 @@ namespace Dan {
     struct DrawCommand
     {
         Math::Mat4 transform; // A matriz de posição/rotação/escala do objeto
-        uint32_t meshId;      // Identificador da malha 3D (vértices)
-        uint32_t materialId;  // Identificador da textura/shader
+        uint16_t programId;;  // Identificador da textura/shader
         uint16_t vbh;
         uint16_t ibh;
     };

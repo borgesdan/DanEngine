@@ -10,6 +10,7 @@ set(PROJECT_SRC_FILES
 "src/Clock.cpp"
 "src/Mesh.cpp"
 "src/GameFramework.cpp"
+"src/Shader.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})

@@ -26,10 +26,7 @@ namespace Dan {
         // Substitui a granularidade exposta de RenderBegin e RenderEnd do ISystem legado
         void BeginFrame();
         void Draw(const RenderData& renderData) const;
-        void EndFrame();
-
-    private:
-        bgfx::ProgramHandle m_defaultShader = BGFX_INVALID_HANDLE;
+        void EndFrame();    
     };
 
 } // namespace Dan
