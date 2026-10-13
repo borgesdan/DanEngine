@@ -2,6 +2,7 @@
 #include <Dan/Common/Log.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
 #include <Dan/Common/Macros/Platform.hpp>
+#include <Dan/Common/Input/InputState.hpp>
 
 namespace Dan {
     Window::Window(std::string_view title, int w, int h)
@@ -59,8 +60,12 @@ namespace Dan {
         return *this;
     }
 
-    void Window::PollEvents()
+    void Window::PollEvents(InputState& outInput)
     {
+        // Reseta os deltas a cada frame
+        outInput.mouseDeltaX = 0.0f;
+        outInput.mouseDeltaY = 0.0f;
+
         SDL_Event event;
 
         // Esvazia a fila de eventos do sistema operacional
@@ -88,11 +93,23 @@ namespace Dan {
                 // Opcional: Sinalizar para a EngineCore retomar a renderização
                 break;
 
+            case SDL_EVENT_MOUSE_MOTION:
+                outInput.mouseDeltaX = event.motion.xrel;
+                outInput.mouseDeltaY = event.motion.yrel;
+                break;
+
             default:
                 // Ignora eventos não mapeados (teclado, mouse, etc) por enquanto
                 break;
             }
         }
+
+        int numKeys;
+        outInput.keyboardState = SDL_GetKeyboardState(&numKeys);
+
+        // Captura o estado global do mouse (botões pressionados neste frame)
+        float mouseX, mouseY;
+        outInput.mouseButtonState = SDL_GetMouseState(&mouseX, &mouseY);
     }
 
     bool Window::ShouldClose() const noexcept

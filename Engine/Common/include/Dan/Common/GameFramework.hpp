@@ -27,7 +27,7 @@ namespace Dan {
         entt::registry& GetRegistry() { return m_registry; }
 
     private:
-        void UpdateGameLogic(float deltaTime);
+        void UpdateGameLogic(const EngineContext& context);
         void BuildRenderData();
 
     private:

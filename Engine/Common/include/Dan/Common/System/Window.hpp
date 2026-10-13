@@ -4,6 +4,8 @@
 #include <SDL3/SDL.h>
 
 namespace Dan {
+	struct InputState;
+
 	//Representa o handle nativo da janela
 	//Para plataforma Linux e Mac o bgfx necessita do nwh (Native window handle) e ndt (Native display type)
 	struct WindowNativeHandle {
@@ -30,7 +32,7 @@ namespace Dan {
 		Window(Window&& other) noexcept;
 		Window& operator=(Window&& other) noexcept;
 
-		void PollEvents();
+		void PollEvents(InputState& outInput);
 
 		[[nodiscard]] bool ShouldClose() const noexcept;
 

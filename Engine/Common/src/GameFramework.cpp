@@ -59,36 +59,56 @@ namespace Dan {
 
 	void GameFramework::Update(const EngineContext& context)
 	{
-		UpdateGameLogic(context.time.elapsedRealTime);
+		UpdateGameLogic(context);
 		BuildRenderData();
 	}
 
-	void GameFramework::UpdateGameLogic(float deltaTime)
+	void GameFramework::UpdateGameLogic(const EngineContext& context)
 	{
 		// Velocidade de movimento (ex: 10 unidades por segundo)
-		const float moveSpeed = 10.0f * deltaTime;
+		const float moveSpeed = 10.0f * context.time.elapsedGameTime;
+		const auto& input = context.input;
 
 		// Pega o estado atual de todas as teclas pressionadas na SDL3
 		int numKeys;
 		const bool* keyState = SDL_GetKeyboardState(&numKeys);
 
-		// Itera apenas pelas entidades que possuem Transform e são Câmeras
 		auto view = m_registry.view<Math::Transform, CameraComponent>();
 
 		for (auto [entity, transform, camera] : view.each())
 		{
 			if (!camera.isPrimary) continue;
 
-			// Movimentação básica (Nota: para um FPS real, você multiplicaria pela rotação do Transform)
-			if (keyState[SDL_SCANCODE_W]) transform.translation.z -= moveSpeed; // Frente
-			if (keyState[SDL_SCANCODE_S]) transform.translation.z += moveSpeed; // Trás
-			if (keyState[SDL_SCANCODE_A]) transform.translation.x -= moveSpeed; // Esquerda
-			if (keyState[SDL_SCANCODE_D]) transform.translation.x += moveSpeed; // Direita
-			if (keyState[SDL_SCANCODE_Q]) transform.translation.y -= moveSpeed; // Desce
-			if (keyState[SDL_SCANCODE_E]) transform.translation.y += moveSpeed; // Sobe
+			//// 1. Rotação (Mouse Yaw/Pitch)
+			// Verifica se o Botão Esquerdo está pressionado
+			if (input.IsMouseButtonDown(SDL_BUTTON_LEFT))
+			{
+				camera.yaw += input.mouseDeltaX * camera.mouseSensitivity;
+				camera.pitch -= input.mouseDeltaY * camera.mouseSensitivity;
+				camera.pitch = glm::clamp(camera.pitch, -89.0f, 89.0f);					
+			}
 
-			// 1. Atualiza a Matriz de Projeção (Lente da Câmera)
-			// Usamos a proporção 16:9 (1280/720) temporariamente. No futuro, isso virá da Window.
+			transform.rotation = glm::quat(glm::vec3(
+				glm::radians(camera.pitch),
+				glm::radians(camera.yaw),
+				0.0f
+			));
+
+
+			// 2. Extração dos vetores direcionais (Frente, Direita, Cima) a partir da rotação
+			Math::Vec3 forward = transform.rotation * Math::Vec3(0.0f, 0.0f, -1.0f);
+			Math::Vec3 right = transform.rotation * Math::Vec3(1.0f, 0.0f, 0.0f);
+			Math::Vec3 up = transform.rotation * Math::Vec3(0.0f, 1.0f, 0.0f);
+
+			// 3. Movimentação (Teclado) relativa à direção do olhar
+			if (input.IsKeyDown(SDL_SCANCODE_W)) transform.translation += forward * moveSpeed;
+			if (input.IsKeyDown(SDL_SCANCODE_S)) transform.translation -= forward * moveSpeed;
+			if (input.IsKeyDown(SDL_SCANCODE_A)) transform.translation -= right * moveSpeed;
+			if (input.IsKeyDown(SDL_SCANCODE_D)) transform.translation += right * moveSpeed;
+			if (input.IsKeyDown(SDL_SCANCODE_E)) transform.translation += up * moveSpeed;
+			if (input.IsKeyDown(SDL_SCANCODE_Q)) transform.translation -= up * moveSpeed;
+
+			// 4. Atualização das Matrizes
 			camera.projectionMatrix = glm::perspective(
 				glm::radians(camera.fov),
 				1280.0f / 720.0f,
@@ -96,8 +116,6 @@ namespace Dan {
 				camera.farClip
 			);
 
-			// 2. Atualiza a Matriz de Visão (Onde a câmera está e para onde olha)
-			// A ViewMatrix é matematicamente a Inversa do Transform da câmera no mundo[cite: 2]
 			camera.viewMatrix = glm::inverse(transform.GetMatrix());
 		}
 	}

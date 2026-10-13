@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include "../Time/GameTime.hpp"
+#include "../Input/InputState.hpp"
 
 namespace Dan {
 
@@ -10,6 +11,7 @@ namespace Dan {
     struct EngineContext
     {
         GameTime time;                      // O pacote de tempo validado
+        InputState input;
         uint64_t frameCount = 0;          // Substitui o nMainFrameID do código legado
         bool isApplicationFocused = true; // Útil para pausar simulações
     };

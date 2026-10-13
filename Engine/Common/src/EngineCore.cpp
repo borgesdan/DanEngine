@@ -90,7 +90,7 @@ namespace Dan {
 		// 3. Processamento de Eventos (Isolado apenas para o modo Standalone)
 		if (!m_isEditorMode && m_window)
 		{
-			m_window->PollEvents();
+			m_window->PollEvents(m_context.input);
 
 			if (m_window->ShouldClose()) {
 				Stop();

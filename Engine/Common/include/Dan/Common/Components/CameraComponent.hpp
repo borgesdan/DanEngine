@@ -10,6 +10,11 @@ namespace Dan {
         float farClip = 1000.0f;
         bool isPrimary = true; // Define se esta é a câmera que está renderizando a tela
 
+        // Controle de Rotação Acumulada
+        float yaw = 0.0f; // Começa olhando para o eixo -Z
+        float pitch = 0.0f;
+        float mouseSensitivity = 0.1f;
+
         // Matrizes em cache geradas a cada frame
         Math::Mat4 viewMatrix{ 1.0f };
         Math::Mat4 projectionMatrix{ 1.0f };
