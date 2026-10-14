@@ -7,15 +7,27 @@
 
 namespace Dan {
 
+    struct DirectionalLightData {
+        Math::Vec3 direction;
+        Math::Vec3 color;
+        float intensity;
+    };
+
     // Representa um único objeto a ser desenhado na tela
     struct DrawCommand
     {
-        Math::Mat4 transform; // A matriz de posição/rotação/escala do objeto
-        uint16_t programId;;  // Identificador da textura/shader
+        Math::Mat4 transform;
         uint16_t vbh;
         uint16_t ibh;
-        uint16_t textureId;
-        uint16_t samplerId;
+        uint16_t programId;
+
+        // Múltiplos IDs de Textura e Samplers
+        uint16_t albedoTexId, albedoSamplerId;
+        uint16_t normalTexId, normalSamplerId;
+        uint16_t specularTexId, specularSamplerId;
+
+        uint16_t propsUniformId;
+        Math::Vec4 materialProps;
     };
 
     // O pacote de dados enviado da lógica do jogo para a GPU a cada frame
@@ -27,6 +39,9 @@ namespace Dan {
 
         // Lista de objetos que passaram pelo Frustum Culling e devem ser desenhados
         std::vector<DrawCommand> drawCommands;
+
+        // Para simplificar, assumimos 1 luz direcional principal
+        DirectionalLightData dirLight;
     };
 
 } // namespace Dan

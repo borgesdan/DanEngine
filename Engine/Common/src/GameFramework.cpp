@@ -4,6 +4,7 @@
 #include <Dan/Common/Macros/CoreAssert.hpp>
 #include <Dan/Common/Components/MeshComponent.hpp>
 #include <Dan/Common/Components/CameraComponent.hpp>
+#include <Dan/Common/Components/LightComponents.hpp>
 #include <SDL3/SDL_keyboard.h>
 
 namespace Dan {	
@@ -22,8 +23,8 @@ namespace Dan {
 		m_registry.emplace<Math::Transform>(entity, transform);
 
 		// Carrega a malha (Geometria) do disco via Assimp
-		auto cubeMesh = assetManager->Load<Mesh>("box.obj");
-		DAN_CORE_ASSERT(cubeMesh, "Falha ao carregar box.obj");
+		auto cubeMesh = assetManager->Load<Mesh>("small_lpg_tank_4k/small_lpg_tank_4k.gltf");
+		DAN_CORE_ASSERT(cubeMesh, "Falha ao carregar o objeto 3d");
 
 		// Carrega os shaders binários compilados pelo shaderc do bgfx
 		// Lembre-se de colocar os arquivos .bin na pasta Assets/Shaders
@@ -31,20 +32,14 @@ namespace Dan {
 		DAN_CORE_ASSERT(vsMesh, "Falha ao carregar Vertex Shader");
 
 		auto fsMesh = assetManager->Load<Shader>("Shaders/fs_mesh.bin");
-		DAN_CORE_ASSERT(fsMesh, "Falha ao carregar Fragment Shader");
-
-		auto texture = assetManager->Load<Texture2D>("Textures/texture.jpg");
-		DAN_CORE_ASSERT(texture, "Falha ao carregar a textura");
+		DAN_CORE_ASSERT(fsMesh, "Falha ao carregar Fragment Shader");		
 
 		// Cria o material agrupando os dois shaders
-		auto cubeMaterial = std::make_shared<Material>(vsMesh, fsMesh, texture);
+		auto cubeMaterial = std::make_shared<Material>(vsMesh, fsMesh);
 
 		// Atribui o componente modernizado à entidade, passando a Malha e o Material reais
 		m_registry.emplace<MeshComponent>(entity, MeshComponent{ cubeMesh, cubeMaterial });
-
-		// ========================================================
-		// 2. CRIAÇÃO DA CÂMERA (SEU CÓDIGO INTACTO)
-		// ========================================================
+		
 		auto cameraEntity = m_registry.create();
 		Math::Transform camTransform;
 		camTransform.translation = Math::Vec3(0.0f, 0.0f, 5.0f); // Coloca a câmera 5 unidades para trás
@@ -138,12 +133,19 @@ namespace Dan {
 			}
 		}
 
+		// Extração da Iluminação Global
+		auto lightView = m_registry.view<const DirectionalLightComponent>();
+		for (auto [entity, light] : lightView.each()) {
+			m_currentRenderData.dirLight.direction = light.direction;
+			m_currentRenderData.dirLight.color = light.color;
+			m_currentRenderData.dirLight.intensity = light.intensity;
+			break; // Assume 1 luz direcional principal para este exemplo
+		}
+
 		// Extrai todas as entidades que possuem Transform e Mesh
 		auto view = m_registry.view<const Math::Transform, const MeshComponent>();
 
-		// O método .each() resolve o problema do iterador complexo e 
-		// desempacota a entidade e seus componentes diretamente nas variáveis.
-		// Itera usando Structured Bindings otimizado do C++20[cite: 2]
+		// Extração das Malhas
 		for (auto [entity, transform, meshComp] : view.each())
 		{
 			if (!meshComp.meshAsset || !meshComp.material) continue;
@@ -153,10 +155,16 @@ namespace Dan {
 			cmd.vbh = meshComp.meshAsset->GetVertexBuffer().idx;
 			cmd.ibh = meshComp.meshAsset->GetIndexBuffer().idx;
 
-			// IDs do Material
 			cmd.programId = meshComp.material->GetProgram().idx;
-			cmd.textureId = meshComp.material->GetTextureHandle().idx;
-			cmd.samplerId = meshComp.material->GetSamplerHandle().idx;
+
+			cmd.albedoTexId = meshComp.material->GetAlbedoHandle().idx;
+			cmd.albedoSamplerId = meshComp.material->GetAlbedoSampler().idx;
+
+			cmd.normalTexId = meshComp.material->GetNormalHandle().idx;
+			cmd.normalSamplerId = meshComp.material->GetNormalSampler().idx;
+
+			cmd.propsUniformId = meshComp.material->GetPropsUniform().idx;
+			cmd.materialProps = meshComp.material->GetPackedProperties();
 
 			m_currentRenderData.drawCommands.push_back(cmd);
 		}

@@ -13,6 +13,7 @@ namespace Dan {
         Math::Vec3 position;
         Math::Vec3 normal;
         Math::Vec2 uv;
+        Math::Vec3 tangent;
 
         // Declaração do layout de memória para o bgfx
         static bgfx::VertexLayout GetLayout();

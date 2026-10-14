@@ -36,6 +36,10 @@ namespace Dan {
         // Configura a cor de limpeza da tela (Clear color)
         bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x6495EDFF, 1.0f, 0);
 
+        // 2. Criação do Uniform Global de Iluminação Direcional
+        // O Shader espera um vec4 (x,y,z para direção e w para intensidade)
+        m_uDirLight = bgfx::createUniform("u_dirLight", bgfx::UniformType::Vec4);
+
         DAN_ENGINE_INFO("Renderizador (bgfx) inicializado com sucesso.");        
     }
 
@@ -58,6 +62,13 @@ namespace Dan {
         // 1. Envia as matrizes da Câmera para a GPU
         bgfx::setViewTransform(0, &renderData.viewMatrix[0][0], &renderData.projectionMatrix[0][0]);
 
+        // 1. Configura a Luz Global para todo o frame
+        float lightData[4] = {
+            renderData.dirLight.direction.x, renderData.dirLight.direction.y,
+            renderData.dirLight.direction.z, renderData.dirLight.intensity
+        };
+        bgfx::setUniform(m_uDirLight, lightData);
+
         // 2. Itera sobre as entidades enviadas pela lógica do jogo
         for (const auto& cmd : renderData.drawCommands)
         {
@@ -76,16 +87,24 @@ namespace Dan {
             // A ausência de flags de CULL garante que ambos os lados do modelo sejam desenhados.
             bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
 
-            // Reconverte o ID numérico para o Handle tipado do bgfx e submete
-            bgfx::ProgramHandle program = { cmd.programId };
-            bgfx::TextureHandle texture = { cmd.textureId };
-            bgfx::UniformHandle sampler = { cmd.samplerId };
+            bgfx::TextureHandle albedoTex = { cmd.albedoTexId };
+            bgfx::UniformHandle albedoSampler = { cmd.albedoSamplerId };
+            if (bgfx::isValid(albedoTex)) bgfx::setTexture(0, albedoSampler, albedoTex);
 
-            // Vincula a textura ao slot 0 usando o sampler do material
-            if (bgfx::isValid(texture) && bgfx::isValid(sampler)) {
-                bgfx::setTexture(0, sampler, texture);
+            bgfx::TextureHandle normalTex = { cmd.normalTexId };
+            bgfx::UniformHandle normalSampler = { cmd.normalSamplerId };
+            if (bgfx::isValid(normalTex)) bgfx::setTexture(1, normalSampler, normalTex);
+
+            bgfx::UniformHandle propsUniform = { cmd.propsUniformId };
+            if (bgfx::isValid(propsUniform)) {
+                bgfx::setUniform(propsUniform, &cmd.materialProps);
             }
 
+            bgfx::TextureHandle specTex = { cmd.specularTexId };
+            bgfx::UniformHandle specSampler = { cmd.specularSamplerId };
+            if (bgfx::isValid(specTex)) bgfx::setTexture(2, specSampler, specTex);
+
+            bgfx::ProgramHandle program = { cmd.programId };
             bgfx::submit(0, program);
         }
     }

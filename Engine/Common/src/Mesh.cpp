@@ -12,6 +12,7 @@ namespace Dan {
         layout.begin()
             .add(bgfx::Attrib::Position, 3, bgfx::AttribType::Float)
             .add(bgfx::Attrib::Normal, 3, bgfx::AttribType::Float)
+            .add(bgfx::Attrib::Tangent, 3, bgfx::AttribType::Float)
             .add(bgfx::Attrib::TexCoord0, 2, bgfx::AttribType::Float)
             .end();
         return layout;
@@ -62,6 +63,11 @@ namespace Dan {
                 v.normal = { ai_mesh->mNormals[i].x, ai_mesh->mNormals[i].y, ai_mesh->mNormals[i].z };
             }
 
+            // NOVO: Extração da Tangente calculada pela Assimp
+            if (ai_mesh->HasTangentsAndBitangents()) {
+                v.tangent = { ai_mesh->mTangents[i].x, ai_mesh->mTangents[i].y, ai_mesh->mTangents[i].z };
+            }
+
             // Pega o primeiro canal de UV, se existir
             if (ai_mesh->mTextureCoords[0]) {
                 v.uv = { ai_mesh->mTextureCoords[0][i].x, ai_mesh->mTextureCoords[0][i].y };
@@ -78,6 +84,8 @@ namespace Dan {
                 indices.push_back(face.mIndices[j]);
             }
         }
+
+
 
         // 3. Conversão para Buffers da GPU (bgfx)
         auto finalMesh = std::make_shared<Mesh>();
