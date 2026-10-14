@@ -6,45 +6,20 @@
 #include <Dan/Common/Components/CameraComponent.hpp>
 #include <Dan/Common/Components/LightComponents.hpp>
 #include <SDL3/SDL_keyboard.h>
+#include <Dan/Common/IO/FileSystem.hpp>
+#include <Dan/Common/Scene/SceneSerializer.hpp>
 
 namespace Dan {	
 
-	GameFramework::GameFramework(AssetManager* assetManager) 
+	GameFramework::GameFramework(AssetManager* assetManager, FileSystem* fileSystem)
 	{
-		DAN_ENGINE_INFO("GameFramework inicializado.");
+		DAN_ENGINE_INFO("GameFramework inicializado. Carregando Cena...");
 
-		// ========================================================
-		// 1. CRIAÇÃO DO OBJETO 3D (CUBO)
-		// ========================================================
-		auto entity = m_registry.create();
+		SceneSerializer serializer(m_registry, assetManager, fileSystem);
 
-		Math::Transform transform;
-		transform.translation = Math::Vec3(0.0f, 0.0f, -5.0f); // 5 unidades para frente
-		m_registry.emplace<Math::Transform>(entity, transform);
-
-		// Carrega a malha (Geometria) do disco via Assimp
-		auto cubeMesh = assetManager->Load<Mesh>("small_lpg_tank_4k/small_lpg_tank_4k.gltf");
-		DAN_CORE_ASSERT(cubeMesh, "Falha ao carregar o objeto 3d");
-
-		// Carrega os shaders binários compilados pelo shaderc do bgfx
-		// Lembre-se de colocar os arquivos .bin na pasta Assets/Shaders
-		auto vsMesh = assetManager->Load<Shader>("Shaders/vs_mesh.bin");
-		DAN_CORE_ASSERT(vsMesh, "Falha ao carregar Vertex Shader");
-
-		auto fsMesh = assetManager->Load<Shader>("Shaders/fs_mesh.bin");
-		DAN_CORE_ASSERT(fsMesh, "Falha ao carregar Fragment Shader");		
-
-		// Cria o material agrupando os dois shaders
-		auto cubeMaterial = std::make_shared<Material>(vsMesh, fsMesh);
-
-		// Atribui o componente modernizado à entidade, passando a Malha e o Material reais
-		m_registry.emplace<MeshComponent>(entity, MeshComponent{ cubeMesh, cubeMaterial });
-		
-		auto cameraEntity = m_registry.create();
-		Math::Transform camTransform;
-		camTransform.translation = Math::Vec3(0.0f, 0.0f, 5.0f); // Coloca a câmera 5 unidades para trás
-		m_registry.emplace<Math::Transform>(cameraEntity, camTransform);
-		m_registry.emplace<CameraComponent>(cameraEntity);
+		// Substitui completamente a criação de entidades em C++
+		bool loaded = serializer.Load("Levels/example.json");
+		DAN_CORE_ASSERT(loaded, "Falha ao carregar o arquivo de nivel principal.");
 	}
 
 	GameFramework::~GameFramework()

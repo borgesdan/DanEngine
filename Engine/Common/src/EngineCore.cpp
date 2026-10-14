@@ -55,7 +55,7 @@ namespace Dan {
 		}
 
 		m_physics = std::make_unique<PhysicsSystem>();
-		m_gameFramework = std::make_unique<GameFramework>(m_assetManager.get());
+		m_gameFramework = std::make_unique<GameFramework>(m_assetManager.get(), m_fileSystem.get());
 	}
 
 	void EngineCore::Run()

@@ -6,11 +6,12 @@
 
 namespace Dan {
     class AssetManager;
+    class FileSystem;
 
     class GameFramework
     {
     public:
-        GameFramework(AssetManager* assetManager);
+        GameFramework(AssetManager* assetManager, FileSystem* fileSystem);
         ~GameFramework();
 
         // O Framework não é copiável

@@ -12,6 +12,7 @@ set(PROJECT_SRC_FILES
 "src/GameFramework.cpp"
 "src/Shader.cpp"
 "src/Texture2D.cpp"
+"src/SceneSerializer.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})
@@ -34,6 +35,8 @@ find_package(bgfx CONFIG REQUIRED)
 find_package(EnTT CONFIG REQUIRED)
 # Leitura de modelos 3D primitivos
 find_package(assimp CONFIG REQUIRED)
+# Gerenciamento de arquivos json
+find_package(nlohmann_json CONFIG REQUIRED)
 # Leitura e carregamento de imagens
 find_path(STB_INCLUDE_DIRS "stb_image.h")
 target_include_directories(dan-core PRIVATE ${STB_INCLUDE_DIRS})
@@ -48,6 +51,7 @@ target_link_libraries(${CUR_PROJECT_NAME}
         bgfx::bx
         bgfx::bimg  
         assimp::assimp
+        nlohmann_json::nlohmann_json
 )
 
 # --- Exportação da lib ---

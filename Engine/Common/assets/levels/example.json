@@ -1,0 +1,32 @@
+{
+  "Scene": "MainLevel",
+  "Entities": [
+    {
+      "Name": "PlayerCube",
+      "Transform": {
+        "Translation": [ 0.0, 0.0, -5.0 ],
+        "Rotation": [ 0.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "MeshComponent": {
+        "MeshPath": "box.obj",
+        "VertexShader": "Shaders/vs_mesh.bin",
+        "FragmentShader": "Shaders/fs_mesh.bin"
+      }
+    },
+    {
+      "Name": "MainCamera",
+      "Transform": {
+        "Translation": [ 0.0, 0.0, 5.0 ],
+        "Rotation": [ 0.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "CameraComponent": {
+        "IsPrimary": true,
+        "Fov": 60.0,
+        "NearClip": 0.1,
+        "FarClip": 1000.0
+      }
+    }
+  ]
+}
