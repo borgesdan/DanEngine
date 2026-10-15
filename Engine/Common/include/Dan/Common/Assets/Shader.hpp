@@ -17,8 +17,11 @@ namespace Dan {
 
         bgfx::ShaderHandle GetHandle() const { return m_handle; }
 
+        const std::string GetVirtualPath() const noexcept override { return virtualPath; }
+
     private:
         bgfx::ShaderHandle m_handle = BGFX_INVALID_HANDLE;
+        std::string virtualPath;
     };
 
 } // namespace Dan

@@ -30,9 +30,14 @@ namespace Dan {
         bgfx::VertexBufferHandle GetVertexBuffer() const { return m_vbh; }
         bgfx::IndexBufferHandle GetIndexBuffer() const { return m_ibh; }
 
+        const std::string GetVirtualPath() const noexcept override {
+            return virtualPath;
+        }
+
     private:
         bgfx::VertexBufferHandle m_vbh = BGFX_INVALID_HANDLE;
         bgfx::IndexBufferHandle m_ibh = BGFX_INVALID_HANDLE;
+        std::string virtualPath;
     };
 
 } // namespace Dan

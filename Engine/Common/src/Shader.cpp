@@ -23,6 +23,7 @@ namespace Dan {
 
         auto shaderAsset = std::make_shared<Shader>();
         shaderAsset->m_handle = handle;
+        shaderAsset->virtualPath = virtualPath;
         return shaderAsset;
     }
 

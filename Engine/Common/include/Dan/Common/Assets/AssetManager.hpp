@@ -11,6 +11,8 @@ namespace Dan {
 	class Asset {
 	public:
 		virtual ~Asset() = default;
+
+		virtual const std::string GetVirtualPath() const noexcept { return {}; }
 	};
 
 	class AssetManager

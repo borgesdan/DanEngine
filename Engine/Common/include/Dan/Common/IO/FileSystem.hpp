@@ -24,6 +24,9 @@ namespace Dan {
         // Lê um arquivo de texto (útil para Shaders GLSL/HLSL ou JSONs)
         [[nodiscard]] std::string ReadTextFile(const std::string& virtualPath) const;
 
+        // Obtém o diretório raiz
+        [[nodiscard]] const std::filesystem::path GetRootPath() const noexcept { return m_rootPath; }
+
     private:
         std::filesystem::path m_rootPath;
     };

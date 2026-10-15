@@ -8,8 +8,7 @@ namespace Dan {
     class Material
     {
     public:
-        Material(std::shared_ptr<Shader> vs, std::shared_ptr<Shader> fs)
-            : m_vertexShader(vs), m_fragmentShader(fs)
+        Material(const std::shared_ptr<Shader>& vs, const std::shared_ptr<Shader>& fs) : m_vertexShader(vs), m_fragmentShader(fs)
         {
             m_program = bgfx::createProgram(m_vertexShader->GetHandle(), m_fragmentShader->GetHandle(), true);
 
@@ -61,6 +60,9 @@ namespace Dan {
         bgfx::TextureHandle GetSpecularHandle() const { return m_specularTex ? m_specularTex->GetHandle() : m_defaultWhite; }
 
         Math::Vec4 GetPackedProperties() const { return Math::Vec4(m_baseColor, m_roughness); }
+
+        Shader* GetVertexShader() const noexcept { return m_vertexShader.get(); }
+        Shader* GetFragmentShader() const noexcept { return m_fragmentShader.get(); }
 
     private:
         std::shared_ptr<Shader> m_vertexShader;

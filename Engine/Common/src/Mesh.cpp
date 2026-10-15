@@ -99,6 +99,7 @@ namespace Dan {
             bgfx::copy(indices.data(), indices.size() * sizeof(uint16_t))
         );
 
+        finalMesh->virtualPath = virtualPath;
         return finalMesh;
     }
 }
