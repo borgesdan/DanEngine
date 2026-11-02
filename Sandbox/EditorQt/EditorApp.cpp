@@ -1,7 +1,7 @@
 #include "EditorApp.hpp" // Ajuste para o nome real do seu cabeçalho
 #include "pch.hpp"
 #include <Dan/Common/Log.hpp>
-#include "ViewportWidget.hpp"
+
 
 namespace Dan {
 
@@ -62,8 +62,8 @@ namespace Dan {
         mainWindow->resize(1280, 720);
 
         // 2. Criação do Viewport que receberá os gráficos da Engine
-        ViewportWidget* viewport = new ViewportWidget(mainWindow);
-        mainWindow->setCentralWidget(viewport);
+        m_viewportWidget = std::make_unique<ViewportWidget>(mainWindow);
+        mainWindow->setCentralWidget(m_viewportWidget.get());
 
         // 1. Permite o agrupamento de painéis em abas (Tabbing)
         mainWindow->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
@@ -89,16 +89,19 @@ namespace Dan {
         // 3. Configuração dos parâmetros e Inicialização da EngineCore
         EngineInitParams params;
         params.isEditorMode = true; // Informa que NÃO devemos criar uma janela SDL3
-        params.nativeWindowHandle = viewport->GetNativeWindowHandle();
+        params.nativeWindowHandle = m_viewportWidget->GetNativeWindowHandle();
 
         // Se você adicionou o nativeDisplayHandle para Linux como discutimos anteriormente:
         //params.nativeDisplayHandle = viewport->GetNativeDisplayHandle(); 
 
-        params.windowWidth = viewport->width();
-        params.windowHeight = viewport->height();
+        params.windowWidth = m_viewportWidget->width();
+        params.windowHeight = m_viewportWidget->height();
 
         // Instancia a Engine injetando o contexto do Qt
         m_engineCore = std::make_unique<EngineCore>(params);
+
+        //Injeta o ponteiro do InputState no ViewportWidget para captura direta de eventos
+        m_viewportWidget->SetInputState(&m_engineCore->GetContext().input);
 
         // 4. Configura o IdleProcessing para rodar continuamente junto com o Qt
         QTimer* idleTimer = new QTimer(this);

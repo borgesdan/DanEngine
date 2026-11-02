@@ -51,6 +51,8 @@ namespace Dan {
 		// Tornado público para ser chamado manualmente via QTimer(0)
 		void ProcessFrame();
 
+		EngineContext& GetContext() noexcept { return m_context; }
+
 	private:
 		void InitializeSubsystems(const EngineInitParams& params);
 

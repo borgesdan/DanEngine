@@ -7,6 +7,7 @@
 
 // Inclusão da nossa EngineCore moderna
 #include <Dan/Common/System/EngineCore.hpp>
+#include "ViewportWidget.hpp"
 
 namespace Dan {
 
@@ -32,6 +33,7 @@ namespace Dan {
     private:
         EditorStartupParams m_startupParams;
         QSharedMemory m_singleInstanceLock;
+        std::unique_ptr<ViewportWidget> m_viewportWidget;
 
         // Propriedade essencial: A engine central (Substitui CGameEngine e CEditorImpl)
         std::unique_ptr<EngineCore> m_engineCore;

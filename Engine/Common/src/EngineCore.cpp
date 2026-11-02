@@ -106,6 +106,12 @@ namespace Dan {
 		m_renderer->BeginFrame();
 		m_renderer->Draw(m_gameFramework->GetRenderData());
 		m_renderer->EndFrame();
+
+		// No modo Editor, limpa os deltas do mouse consumidos neste frame
+		if (m_isEditorMode)
+		{
+			m_context.input.ClearFrameDeltas();
+		}
 	}
 
 } // namespace Dan
