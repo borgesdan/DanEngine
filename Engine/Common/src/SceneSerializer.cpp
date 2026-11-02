@@ -48,17 +48,17 @@ namespace Dan {
 
         DAN_ENGINE_INFO("Carregando cena: {0}", data["Scene"].get<std::string>());
 
-        auto entities = data["Entities"];
+        const auto& entities = data["Entities"];
         if (entities.is_array())
         {
-            for (auto entityData : entities)
+            for (const auto& entityData : entities)
             {
                 auto entity = m_registry.create();
 
                 // Desserializa Transform
                 if (entityData.contains("Transform"))
                 {
-                    auto transformData = entityData["Transform"];
+                    const auto& transformData = entityData["Transform"];
                     Math::Transform transform;
 
                     transform.translation = { transformData["Translation"][0], transformData["Translation"][1], transformData["Translation"][2] };
@@ -75,7 +75,7 @@ namespace Dan {
                 // Desserializa MeshComponent
                 if (entityData.contains("MeshComponent"))
                 {
-                    auto meshData = entityData["MeshComponent"];
+                    const auto& meshData = entityData["MeshComponent"];
 
                     auto mesh = m_assetManager->Load<Mesh>(meshData["MeshPath"]);
                     auto vs = m_assetManager->Load<Shader>(meshData["VertexShader"]);
@@ -93,7 +93,7 @@ namespace Dan {
                 // Desserializa CameraComponent
                 if (entityData.contains("CameraComponent"))
                 {
-                    auto camData = entityData["CameraComponent"];
+                    const auto& camData = entityData["CameraComponent"];
                     CameraComponent camera;
                     camera.isPrimary = camData["IsPrimary"];
                     camera.fov = camData["Fov"];
