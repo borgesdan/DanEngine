@@ -20,7 +20,7 @@ namespace Dan {
 struct EngineInitParams {
 	bool isEditorMode = false;
 	// O HWND/Pointer gerado pelo Viewport do Qt
-	void* nativeWindowHandle = nullptr; 
+	void* nativeWindowHandle = nullptr;
 	// O handle do display gerado pelo Viewport do Qt
 	void* nativeDisplayHandle = nullptr;
 	uint32_t windowWidth = 1280;
@@ -52,6 +52,9 @@ namespace Dan {
 		void ProcessFrame();
 
 		EngineContext& GetContext() noexcept { return m_context; }
+		GameFramework* GetGameFramework() noexcept { return m_gameFramework.get(); }
+		AssetManager* GetAssetManager() noexcept { return m_assetManager.get(); }
+		FileSystem* GetFileSystem() noexcept { return m_fileSystem.get(); }
 
 	private:
 		void InitializeSubsystems(const EngineInitParams& params);

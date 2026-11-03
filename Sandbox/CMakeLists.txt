@@ -12,6 +12,8 @@ set(EDITOR_QT_SRC
     "EditorQt/SplashScreen.cpp"
     "EditorQt/ViewportWidget.cpp"
     "EditorQt/EditorApp.cpp"
+    "EditorQt/SceneOutlinerWidget.cpp"
+    "EditorQt/PropertyInspectorWidget.cpp"
 	"EditorQt/Qt/QtMain.cpp"
 	"EditorQt/Resources/resources.qrc"
 )

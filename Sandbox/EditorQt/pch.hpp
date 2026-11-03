@@ -21,13 +21,16 @@
 #include <QApplication>
 #include <QDir>
 #include <QDockWidget>
+#include <QFileDialog>
 #include <QFileSystemWatcher>
 #include <QLabel>
 #include <QMainWindow>
+#include <QMenuBar>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
 #include <QSettings>
 #include <QStringList>
 #include <QTimer>
+
 

@@ -25,7 +25,7 @@ namespace Dan {
         [[nodiscard]] const RenderData& GetRenderData() const noexcept;
 
         // Expõe o registro para que o Editor Qt (via entt::meta) possa ler/editar a cena[cite: 5]
-        entt::registry& GetRegistry() { return m_registry; }
+        entt::registry& GetRegistry() { return m_registry; }		
 
     private:
         void UpdateGameLogic(const EngineContext& context);

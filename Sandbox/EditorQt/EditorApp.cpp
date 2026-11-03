@@ -1,6 +1,13 @@
-#include "EditorApp.hpp" // Ajuste para o nome real do seu cabeçalho
-#include "pch.hpp"
+#include "EditorApp.hpp"
+#include "ViewportWidget.hpp"
+#include "SceneOutlinerWidget.hpp"
+#include "PropertyInspectorWidget.hpp"
+
 #include <Dan/Common/Log.hpp>
+#include <Dan/Common/Scene/SceneSerializer.hpp>
+
+#include "pch.hpp"
+#include <Dan/Common/GameFramework.hpp>
 
 
 namespace Dan {
@@ -48,7 +55,7 @@ namespace Dan {
 
     bool EditorApp::Initialize()
     {
-        DAN_ENGINE_INFO("Inicializando módulos do Editor...");
+        DAN_ENGINE_INFO("Inicializando subsistemas do Editor...");
 
         ParseCommandLineArgs();
 
@@ -56,57 +63,105 @@ namespace Dan {
             return false;
         }
 
-        // 1. Criação da Janela Principal do Editor puramente em Qt
+        // 1. Janela Principal do Editor
         QMainWindow* mainWindow = new QMainWindow();
-        mainWindow->setWindowTitle("DanEngine Sandbox");
-        mainWindow->resize(1280, 720);
-
-        // 2. Criação do Viewport que receberá os gráficos da Engine
-        m_viewportWidget = std::make_unique<ViewportWidget>(mainWindow);
-        mainWindow->setCentralWidget(m_viewportWidget.get());
-
-        // 1. Permite o agrupamento de painéis em abas (Tabbing)
+        mainWindow->setWindowTitle("DanEngine Sandbox - Qt6 Editor");
+        mainWindow->resize(1600, 900);
         mainWindow->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
-        // 2. Criação de um painel (Ex: Property Inspector)
-        QDockWidget* inspectorDock = new QDockWidget("Property Inspector", mainWindow);
-        inspectorDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+        // 2. Viewport Central (bgfx)
+        auto viewport = new ViewportWidget(mainWindow);
+        mainWindow->setCentralWidget(viewport);
 
-        // Define as permissões do usuário (mover, flutuar, fechar)
-        inspectorDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetClosable);
-
-        // 3. Adiciona o conteúdo real do painel (Aqui entraria o seu bind do EnTT)
-        QWidget* inspectorContent = new QLabel("Conteúdo do Inspetor de Propriedades via EnTT");
-        inspectorDock->setWidget(inspectorContent);
-
-        // 4. Acopla o painel à janela principal (Ancorado à direita por padrão)
-        mainWindow->addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
-
-        // FORÇA a janela a ser exibida antes de inicializar a Engine.
-        // Isso é crucial para que o sistema operacional crie o Handle nativo válido (HWND/XID)
+        // FORÇA a exibição para gerar o Window Handle nativo
         mainWindow->show();
 
-        // 3. Configuração dos parâmetros e Inicialização da EngineCore
+        // 3. Inicialização do Core da Engine
         EngineInitParams params;
-        params.isEditorMode = true; // Informa que NÃO devemos criar uma janela SDL3
-        params.nativeWindowHandle = m_viewportWidget->GetNativeWindowHandle();
+        params.isEditorMode = true;
+        params.nativeWindowHandle = viewport->GetNativeWindowHandle();
+        params.windowWidth = viewport->width();
+        params.windowHeight = viewport->height();
 
-        // Se você adicionou o nativeDisplayHandle para Linux como discutimos anteriormente:
-        //params.nativeDisplayHandle = viewport->GetNativeDisplayHandle(); 
-
-        params.windowWidth = m_viewportWidget->width();
-        params.windowHeight = m_viewportWidget->height();
-
-        // Instancia a Engine injetando o contexto do Qt
         m_engineCore = std::make_unique<EngineCore>(params);
+        viewport->SetInputState(&m_engineCore->GetContext().input);
 
-        //Injeta o ponteiro do InputState no ViewportWidget para captura direta de eventos
-        m_viewportWidget->SetInputState(&m_engineCore->GetContext().input);
+        // Obter referências da cena e sistemas do GameFramework
+        auto& registry = m_engineCore->GetGameFramework()->GetRegistry();
+        auto* assetManager = m_engineCore->GetAssetManager();
+        auto* fileSystem = m_engineCore->GetFileSystem();
 
-        // 4. Configura o IdleProcessing para rodar continuamente junto com o Qt
+        // 4. Instanciação dos Painéis de Ferramentas (Docks)
+        SceneOutlinerWidget* outlinerDock = new SceneOutlinerWidget(registry, mainWindow);
+        PropertyInspectorWidget* inspectorDock = new PropertyInspectorWidget(registry, mainWindow);
+
+        mainWindow->addDockWidget(Qt::LeftDockWidgetArea, outlinerDock);
+        mainWindow->addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
+
+        // Conecta a seleção do Outliner diretamente ao Property Inspector
+        connect(outlinerDock, &SceneOutlinerWidget::EntitySelected, inspectorDock, &PropertyInspectorWidget::InspectEntity);
+
+        outlinerDock->Refresh();
+
+        // 5. Configuração da Barra de Menus (QMenuBar + QFileDialog + SceneSerializer)
+        QMenuBar* menuBar = mainWindow->menuBar();
+        QMenu* fileMenu = menuBar->addMenu("&Arquivo");
+
+        // Ação: Novo Nível
+        QAction* newLevelAction = fileMenu->addAction("&Novo Nível");
+        connect(newLevelAction, &QAction::triggered, [this, &registry, outlinerDock, inspectorDock]() {
+            registry.clear();
+            outlinerDock->Refresh();
+            inspectorDock->InspectEntity(entt::null);
+            DAN_ENGINE_INFO("Novo nível criado (Cena limpa).");
+            });
+
+        // Ação: Abrir Nível...
+        QAction* openLevelAction = fileMenu->addAction("&Abrir Nível...");
+        connect(openLevelAction, &QAction::triggered, [this, &registry, assetManager, fileSystem, outlinerDock, inspectorDock, mainWindow]() {
+            QString filePath = QFileDialog::getOpenFileName(
+                mainWindow,
+                "Abrir Arquivo de Nível",
+                "Assets/Levels",
+                "Arquivos de Nível (*.json)"
+            );
+
+            if (!filePath.isEmpty()) {
+                SceneSerializer serializer(registry, assetManager, fileSystem);
+                std::string relativePath = std::filesystem::relative(filePath.toStdString(), fileSystem->GetRootPath()).string();
+
+                if (serializer.Load(relativePath)) {
+                    outlinerDock->Refresh();
+                    inspectorDock->InspectEntity(entt::null);
+                }
+            }
+            });
+
+        // Ação: Salvar Nível...
+        QAction* saveLevelAction = fileMenu->addAction("&Salvar Nível Como...");
+        connect(saveLevelAction, &QAction::triggered, [this, &registry, assetManager, fileSystem, mainWindow]() {
+            QString filePath = QFileDialog::getSaveFileName(
+                mainWindow,
+                "Salvar Nível Como",
+                "Assets/Levels/example_saved.json",
+                "Arquivos de Nível (*.json)"
+            );
+
+            if (!filePath.isEmpty()) {
+                SceneSerializer serializer(registry, assetManager, fileSystem);
+                std::string relativePath = std::filesystem::relative(filePath.toStdString(), fileSystem->GetRootPath()).string();
+                serializer.Save(relativePath);
+            }
+            });
+
+        fileMenu->addSeparator();
+        QAction* exitAction = fileMenu->addAction("&Sair");
+        connect(exitAction, &QAction::triggered, mainWindow, &QMainWindow::close);
+
+        // 6. Idle Processing (ProcessFrame)
         QTimer* idleTimer = new QTimer(this);
         connect(idleTimer, &QTimer::timeout, this, &EditorApp::OnIdleUpdate);
-        idleTimer->start(0); // 0ms = O evento timeout dispara sempre que o Qt não tiver nada para processar na fila de eventos
+        idleTimer->start(0);
 
         return true;
     }
