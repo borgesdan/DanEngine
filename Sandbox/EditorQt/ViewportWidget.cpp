@@ -6,6 +6,7 @@
 #include <QFocusEvent>
 #include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_mouse.h>
+#include <Dan/Common/Math/MathTypes.hpp>
 
 namespace Dan {
 
@@ -62,13 +63,23 @@ namespace Dan {
 
     void ViewportWidget::mousePressEvent(QMouseEvent* event)
     {
-        setFocus(); // Garante o foco de teclado ao clicar na viewport
+        setFocus();
 
-        if (!m_inputState) return;
+        if (m_inputState) {
+            int sdlButton = QtButtonToSDLButton(event->button());
+            if (sdlButton != 0) {
+                m_inputState->SetMouseButtonDown(sdlButton, true);
+            }
+        }
 
-        int sdlButton = QtButtonToSDLButton(event->button());
-        if (sdlButton != 0) {
-            m_inputState->SetMouseButtonDown(sdlButton, true);
+        // Clique com o Botão Esquerdo realiza a Seleção 3D por Raycasting[cite: 5, 10]
+        if (event->button() == Qt::LeftButton)
+        {
+            QPoint localPos = event->pos();
+            Math::Vec2 mousePos(static_cast<float>(localPos.x()), static_cast<float>(localPos.y()));
+            Math::Vec2 viewportSize(static_cast<float>(width()), static_cast<float>(height()));
+
+            emit ViewportClicked(mousePos, viewportSize);
         }
 
         m_lastMousePos = event->globalPosition().toPoint();
@@ -77,11 +88,15 @@ namespace Dan {
 
     void ViewportWidget::mouseReleaseEvent(QMouseEvent* event)
     {
-        if (!m_inputState) return;
+        if (m_inputState) {
+            int sdlButton = QtButtonToSDLButton(event->button());
+            if (sdlButton != 0) {
+                m_inputState->SetMouseButtonDown(sdlButton, false);
+            }
+        }
 
-        int sdlButton = QtButtonToSDLButton(event->button());
-        if (sdlButton != 0) {
-            m_inputState->SetMouseButtonDown(sdlButton, false);
+        if (event->button() == Qt::LeftButton) {
+            emit ViewportMouseReleased();
         }
 
         m_isMouseTrackingActive = false;

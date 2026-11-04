@@ -14,6 +14,7 @@ set(EDITOR_QT_SRC
     "EditorQt/EditorApp.cpp"
     "EditorQt/SceneOutlinerWidget.cpp"
     "EditorQt/PropertyInspectorWidget.cpp"
+    "EditorQt/GizmoSystem.cpp"
 	"EditorQt/Qt/QtMain.cpp"
 	"EditorQt/Resources/resources.qrc"
 )

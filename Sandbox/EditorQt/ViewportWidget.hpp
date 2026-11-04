@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QPoint>
+#include <Dan/Common/Math/MathTypes.hpp>
 
 namespace Dan {
 
@@ -18,6 +19,11 @@ namespace Dan {
 
         // Injeta a referência para o estado de entrada do EngineContext
         void SetInputState(InputState* inputState);
+
+    signals:
+        // Sinal emitido ao clicar na Viewport para picking 3D por Raycasting
+        void ViewportClicked(const Math::Vec2& mousePos, const Math::Vec2& viewportSize);
+        void ViewportMouseReleased();
 
     protected:
         QPaintEngine* paintEngine() const override { return nullptr; }

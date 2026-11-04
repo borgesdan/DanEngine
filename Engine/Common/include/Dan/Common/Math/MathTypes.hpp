@@ -6,6 +6,11 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// Habilita as extensões experimentais do GLM (gtx)
+#ifndef GLM_ENABLE_EXPERIMENTAL
+#define GLM_ENABLE_EXPERIMENTAL
+#endif
+
 namespace Dan::Math {
 	// Alias para os tipos matemáticos da engine
 	using Vec2 = glm::vec2;

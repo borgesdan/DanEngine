@@ -8,6 +8,7 @@
 
 #include "pch.hpp"
 #include <Dan/Common/GameFramework.hpp>
+#include "ObjectPicker.hpp"
 
 
 namespace Dan {
@@ -72,6 +73,7 @@ namespace Dan {
         // 2. Viewport Central (bgfx)
         auto viewport = new ViewportWidget(mainWindow);
         mainWindow->setCentralWidget(viewport);
+		m_viewportWidget = viewport; // Mantém referência para uso posterior
 
         // FORÇA a exibição para gerar o Window Handle nativo
         mainWindow->show();
@@ -90,6 +92,11 @@ namespace Dan {
         auto& registry = m_engineCore->GetGameFramework()->GetRegistry();
         auto* assetManager = m_engineCore->GetAssetManager();
         auto* fileSystem = m_engineCore->GetFileSystem();
+
+        auto vsColor = assetManager->Load<Shader>("Shaders/vs_color.bin");
+        auto fsColor = assetManager->Load<Shader>("Shaders/fs_color.bin");
+        // Cria o programa e guarda no EditorApp
+        m_gizmoShader = bgfx::createProgram(vsColor->GetHandle(), fsColor->GetHandle(), false);
 
         // 4. Instanciação dos Painéis de Ferramentas (Docks)
         SceneOutlinerWidget* outlinerDock = new SceneOutlinerWidget(registry, mainWindow);
@@ -152,26 +159,89 @@ namespace Dan {
                 std::string relativePath = std::filesystem::relative(filePath.toStdString(), fileSystem->GetRootPath()).string();
                 serializer.Save(relativePath);
             }
-            });
+            });        
 
         fileMenu->addSeparator();
         QAction* exitAction = fileMenu->addAction("&Sair");
         connect(exitAction, &QAction::triggered, mainWindow, &QMainWindow::close);
+
+        // 5. Clique no Viewport: Tenta selecionar eixo do Gizmo primeiro; se não houver, faz Picking de objeto
+        connect(viewport, &ViewportWidget::ViewportClicked,
+            [this, outlinerDock, inspectorDock](const Math::Vec2& mousePos, const Math::Vec2& viewportSize)
+            {
+                auto& reg = m_engineCore->GetGameFramework()->GetRegistry();
+                const auto& renderData = m_engineCore->GetGameFramework()->GetRenderData();
+
+                // Gera o Raio 3D a partir do clique
+                Math::Ray ray = Math::Ray::ScreenPointToRay(mousePos, viewportSize, renderData.viewMatrix, renderData.projectionMatrix);
+
+                // Se temos uma entidade selecionada, testa se o clique acertou um eixo do Gizmo
+                if (m_selectedEntity != entt::null && reg.valid(m_selectedEntity))
+                {
+                    if (auto* transform = reg.try_get<Math::Transform>(m_selectedEntity))
+                    {
+                        if (m_gizmoSystem.OnMousePress(ray, *transform))
+                        {
+                            // Clique atingiu o Gizmo: não altera a seleção de entidade
+                            return;
+                        }
+                    }
+                }
+
+                // Se não clicou no Gizmo, faz o Object Picking no mundo 3D
+                entt::entity hitEntity = ObjectPicker::PickEntity(reg, mousePos, viewportSize);
+                m_selectedEntity = hitEntity;
+
+                inspectorDock->InspectEntity(hitEntity);
+                outlinerDock->SelectEntityInTree(hitEntity);
+            });
+
+        // Eventos de Soltura do Mouse para liberar o Gizmo
+        connect(viewport, &ViewportWidget::ViewportMouseReleased, [this]() {
+            m_gizmoSystem.OnMouseRelease();
+            });
 
         // 6. Idle Processing (ProcessFrame)
         QTimer* idleTimer = new QTimer(this);
         connect(idleTimer, &QTimer::timeout, this, &EditorApp::OnIdleUpdate);
         idleTimer->start(0);
 
+
         return true;
     }
 
     void EditorApp::OnIdleUpdate()
     {
-        // O Qt assumiu o controle da thread (via app.exec() no main).
-        // Para atualizar a Engine sem travar a interface visual, chamamos o processamento de 1 frame por vez.
         if (m_engineCore)
         {
+            auto& registry = m_engineCore->GetGameFramework()->GetRegistry();
+            const auto& renderData = m_engineCore->GetGameFramework()->GetRenderData();
+            const auto& input = m_engineCore->GetContext().input;
+
+            // Se o Gizmo estiver sendo arrastado com o mouse, atualiza a posição do objeto em tempo real
+            if (m_gizmoSystem.IsActive() && m_selectedEntity != entt::null && registry.valid(m_selectedEntity))
+            {
+                if (auto* transform = registry.try_get<Math::Transform>(m_selectedEntity))
+                {
+                    QPoint mousePos = m_viewportWidget->mapFromGlobal(QCursor::pos());
+                    Math::Vec2 mPos(static_cast<float>(mousePos.x()), static_cast<float>(mousePos.y()));
+                    Math::Vec2 vSize(static_cast<float>(m_viewportWidget->width()), static_cast<float>(m_viewportWidget->height()));
+
+                    Math::Ray ray = Math::Ray::ScreenPointToRay(mPos, vSize, renderData.viewMatrix, renderData.projectionMatrix);
+                    m_gizmoSystem.OnMouseDrag(ray, *transform);
+                }
+            }
+
+            // Submete o desenho do Gizmo para o bgfx antes ou durante o frame
+            if (m_selectedEntity != entt::null && registry.valid(m_selectedEntity))
+            {
+                if (auto* transform = registry.try_get<Math::Transform>(m_selectedEntity))
+                {
+                    m_gizmoSystem.RenderGizmo(*transform, renderData.viewMatrix, renderData.projectionMatrix, m_gizmoShader);
+                }
+            }
+
+            // Executa o processamento do frame (Lógica + Render)
             m_engineCore->ProcessFrame();
         }
     }

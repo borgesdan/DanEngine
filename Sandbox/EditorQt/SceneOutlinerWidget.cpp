@@ -49,6 +49,33 @@ namespace Dan {
         }
     }
 
+    void SceneOutlinerWidget::SelectEntityInTree(entt::entity entity)
+    {
+        if (!m_treeWidget) return;
+
+        // Bloqueia sinais temporariamente para evitar disparo em loop do OnItemSelectionChanged
+        QSignalBlocker blocker(m_treeWidget);
+
+        if (entity == entt::null || !m_registry.valid(entity)) {
+            m_treeWidget->clearSelection();
+            return;
+        }
+
+        uint32_t targetID = static_cast<uint32_t>(entity);
+
+        for (int i = 0; i < m_treeWidget->topLevelItemCount(); ++i)
+        {
+            QTreeWidgetItem* item = m_treeWidget->topLevelItem(i);
+            if (item && item->data(0, Qt::UserRole).toUInt() == targetID)
+            {
+                m_treeWidget->clearSelection();
+                item->setSelected(true);
+                m_treeWidget->setCurrentItem(item);
+                break;
+            }
+        }
+    }
+
     void SceneOutlinerWidget::OnItemSelectionChanged()
     {
         auto selectedItems = m_treeWidget->selectedItems();
@@ -59,6 +86,6 @@ namespace Dan {
 
         uint32_t rawID = selectedItems.first()->data(0, Qt::UserRole).toUInt();
         emit EntitySelected(static_cast<entt::entity>(rawID));
-    }
+    }    
 
 } // namespace Dan

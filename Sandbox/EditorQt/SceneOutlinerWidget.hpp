@@ -16,6 +16,9 @@ namespace Dan {
         // Recarrega a árvore de entidades exibida
         void Refresh();
 
+        // Seleciona visualmente o item da entidade na QTreeWidget
+        void SelectEntityInTree(entt::entity entity);
+
     signals:
         void EntitySelected(entt::entity entity);
 
