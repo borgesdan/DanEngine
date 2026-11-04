@@ -21,6 +21,14 @@ namespace Dan {
         setMouseTracking(true);
     }
 
+    void ViewportWidget::wheelEvent(QWheelEvent* event)
+    {
+        if (!m_inputState) return;
+
+        // angleDelta().y() retorna 120 por "click/notch" do scroll do mouse
+        m_inputState->mouseWheelDelta += static_cast<float>(event->angleDelta().y()) / 120.0f;
+    }
+
     void ViewportWidget::SetInputState(InputState* inputState)
     {
         m_inputState = inputState;

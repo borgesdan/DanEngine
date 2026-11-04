@@ -11,6 +11,7 @@ namespace Dan {
         // Estado do Mouse
         float mouseDeltaX = 0.0f;
         float mouseDeltaY = 0.0f;
+        float mouseWheelDelta = 0.0f; // Suporte a Zoom/Dolly via Scroll Wheel
 
         // Ponteiro direto para o array interno da SDL3 ou buffer local do Qt
         const bool* keyboardState = nullptr;
@@ -55,6 +56,7 @@ namespace Dan {
         void ClearFrameDeltas() noexcept {
             mouseDeltaX = 0.0f;
             mouseDeltaY = 0.0f;
+            mouseWheelDelta = 0.0f;
         }
     };
 }

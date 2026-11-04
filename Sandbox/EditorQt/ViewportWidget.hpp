@@ -3,6 +3,7 @@
 #include <QWidget>
 #include <QPoint>
 #include <Dan/Common/Math/MathTypes.hpp>
+#include <QWheelEvent>
 
 namespace Dan {
 
@@ -26,6 +27,7 @@ namespace Dan {
         void ViewportMouseReleased();
 
     protected:
+        void wheelEvent(QWheelEvent* event) override;
         QPaintEngine* paintEngine() const override { return nullptr; }
 
         void paintEvent(QPaintEvent* event) override;
