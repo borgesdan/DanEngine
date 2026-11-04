@@ -37,17 +37,8 @@ namespace Dan {
 	{
 		const auto& input = context.input;
 
-		// 1. Aumento de velocidade ao pressionar SHIFT (Speed Boost)
-		float speedMultiplier = 1.0f;
-		if (input.IsKeyDown(SDL_SCANCODE_LSHIFT) || input.IsKeyDown(SDL_SCANCODE_RSHIFT))
-		{
-			speedMultiplier = 3.0f;
-		}
-
-		const float baseSpeed = 10.0f;
-		const float moveSpeed = baseSpeed * speedMultiplier * context.time.elapsedGameTime;
-		const float panSensitivity = 0.05f * speedMultiplier;
-		const float wheelSensitivity = 2.0f * speedMultiplier;
+		// Identifica se alguma tecla Shift está sendo segurada
+		const bool isShiftDown = input.IsKeyDown(SDL_SCANCODE_LSHIFT) || input.IsKeyDown(SDL_SCANCODE_RSHIFT);
 
 		auto view = m_registry.view<Math::Transform, CameraComponent>();
 
@@ -55,7 +46,20 @@ namespace Dan {
 		{
 			if (!camera.isPrimary) continue;
 
-			// --- A. Rotação (Botão Direito do Mouse - RMB) ---
+			// --- A. Ajuste Dinâmico da Velocidade Base (Shift + Scroll) ---
+			if (isShiftDown && std::abs(input.mouseWheelDelta) > 0.001f)
+			{
+				// Variação proporcional de 20% da velocidade atual por clique do scroll
+				float speedStep = camera.baseSpeed * 0.2f * input.mouseWheelDelta;
+				camera.baseSpeed = glm::clamp(camera.baseSpeed + speedStep, camera.minSpeed, camera.maxSpeed);
+			}
+
+			// Multiplicador de impulso adicional para movimento WASD contínuo
+			const float speedMultiplier = isShiftDown ? 2.0f : 1.0f;
+			const float moveSpeed = camera.baseSpeed * speedMultiplier * context.time.elapsedGameTime;
+			const float panSensitivity = 0.005f * camera.baseSpeed;
+
+			// --- B. Rotação (Botão Direito do Mouse - RMB) ---
 			if (input.IsMouseButtonDown(SDL_BUTTON_RIGHT))
 			{
 				camera.yaw += input.mouseDeltaX * camera.mouseSensitivity;
@@ -63,38 +67,37 @@ namespace Dan {
 				camera.pitch = glm::clamp(camera.pitch, -89.0f, 89.0f);
 			}
 
-			// Atualiza a rotação via Quatérnio (Euler Angles -> Quat)
 			transform.rotation = glm::quat(glm::vec3(
 				glm::radians(camera.pitch),
 				glm::radians(camera.yaw),
 				0.0f
 			));
 
-			// Vetores de direção do espaço local da câmera
 			Math::Vec3 forward = transform.rotation * Math::Vec3(0.0f, 0.0f, -1.0f);
 			Math::Vec3 right = transform.rotation * Math::Vec3(1.0f, 0.0f, 0.0f);
 			Math::Vec3 up = transform.rotation * Math::Vec3(0.0f, 1.0f, 0.0f);
 
-			// --- B. Panorâmica (Botão do Meio do Mouse - MMB) ---
+			// --- C. Panorâmica (Botão do Meio do Mouse - MMB) ---
 			if (input.IsMouseButtonDown(SDL_BUTTON_MIDDLE))
 			{
 				transform.translation -= right * (input.mouseDeltaX * panSensitivity);
 				transform.translation += up * (input.mouseDeltaY * panSensitivity);
 			}
 
-			// --- C. Movimentação Teclado (WASD) ---
+			// --- D. Movimentação WASD ---
 			if (input.IsKeyDown(SDL_SCANCODE_W)) transform.translation += forward * moveSpeed;
 			if (input.IsKeyDown(SDL_SCANCODE_S)) transform.translation -= forward * moveSpeed;
 			if (input.IsKeyDown(SDL_SCANCODE_A)) transform.translation -= right * moveSpeed;
 			if (input.IsKeyDown(SDL_SCANCODE_D)) transform.translation += right * moveSpeed;
 
-			// --- D. Zoom / Dolly (Scroll Wheel) ---
-			if (std::abs(input.mouseWheelDelta) > 0.001f)
+			// --- E. Zoom / Dolly (Scroll sem Shift) ---
+			if (!isShiftDown && std::abs(input.mouseWheelDelta) > 0.001f)
 			{
-				transform.translation += forward * (input.mouseWheelDelta * wheelSensitivity);
+				const float dollySensitivity = 0.2f * camera.baseSpeed;
+				transform.translation += forward * (input.mouseWheelDelta * dollySensitivity);
 			}
 
-			// --- E. Recálculo das Matrizes da Câmera ---
+			// --- F. Atualização das Matrizes da Câmera ---
 			camera.projectionMatrix = glm::perspective(
 				glm::radians(camera.fov),
 				1280.0f / 720.0f,

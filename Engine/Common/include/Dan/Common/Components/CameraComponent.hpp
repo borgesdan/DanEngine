@@ -15,6 +15,11 @@ namespace Dan {
         float pitch = 0.0f;
         float mouseSensitivity = 0.1f;
 
+        // Configuração de Velocidade da Câmera (Preset do Editor)
+        float baseSpeed = 10.0f;      // Velocidade base atual (unidades/segundo)
+        float minSpeed = 0.5f;        // Limite mínimo de velocidade
+        float maxSpeed = 150.0f;       // Limite máximo de velocidade
+
         // Matrizes em cache geradas a cada frame
         Math::Mat4 viewMatrix{ 1.0f };
         Math::Mat4 projectionMatrix{ 1.0f };
