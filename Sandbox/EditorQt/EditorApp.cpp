@@ -105,8 +105,11 @@ namespace Dan {
         mainWindow->addDockWidget(Qt::LeftDockWidgetArea, outlinerDock);
         mainWindow->addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
 
-        // Conecta a seleção do Outliner diretamente ao Property Inspector
-        connect(outlinerDock, &SceneOutlinerWidget::EntitySelected, inspectorDock, &PropertyInspectorWidget::InspectEntity);
+        // Sincroniza a seleção do Outliner com a variável central m_selectedEntity do EditorApp
+        connect(outlinerDock, &SceneOutlinerWidget::EntitySelected, [this, inspectorDock](entt::entity entity) {
+            m_selectedEntity = entity;
+            inspectorDock->InspectEntity(entity);
+            });
 
         outlinerDock->Refresh();
 
