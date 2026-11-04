@@ -4,6 +4,8 @@
 #include <QCommandLineParser>
 #include <QSharedMemory>
 #include <memory>
+#include <QStatusBar>
+#include <QLabel>
 
 // Inclusão da nossa EngineCore moderna
 #include <Dan/Common/System/EngineCore.hpp>
@@ -44,6 +46,10 @@ namespace Dan {
         entt::entity m_selectedEntity{ entt::null };
         GizmoSystem m_gizmoSystem;
         bgfx::ProgramHandle m_gizmoShader = BGFX_INVALID_HANDLE;
+
+        // Elementos da Barra de Status do Qt
+        QLabel* m_cameraSpeedLabel{ nullptr };
+        float m_lastCameraSpeed{ -1.0f };
     };
 
 } // namespace Dan

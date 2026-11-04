@@ -70,6 +70,11 @@ namespace Dan {
         mainWindow->resize(1600, 900);
         mainWindow->setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks);
 
+        // 2. Configuração da Barra de Status (QStatusBar)
+        QStatusBar* statusBar = mainWindow->statusBar();
+        m_cameraSpeedLabel = new QLabel("Velocidade da Câmera: 10.0 u/s", mainWindow);
+        statusBar->addPermanentWidget(m_cameraSpeedLabel); // Fixa o rótulo no canto direito da barra
+
         // 2. Viewport Central (bgfx)
         auto viewport = new ViewportWidget(mainWindow);
         mainWindow->setCentralWidget(viewport);
@@ -241,6 +246,27 @@ namespace Dan {
                 if (auto* transform = registry.try_get<Math::Transform>(m_selectedEntity))
                 {
                     m_gizmoSystem.RenderGizmo(*transform, renderData.viewMatrix, renderData.projectionMatrix, m_gizmoShader);
+                }
+            }
+
+            // 1. Monitora a Câmera Primária para refletir a velocidade na UI do Qt
+            auto cameraView = registry.view<const CameraComponent>();
+            for (auto [entity, camera] : cameraView.each())
+            {
+                if (camera.isPrimary)
+                {
+                    // Atualiza o widget apenas se a velocidade mudou em relação ao quadro anterior
+                    if (std::abs(camera.baseSpeed - m_lastCameraSpeed) > 0.001f)
+                    {
+                        m_lastCameraSpeed = camera.baseSpeed;
+                        if (m_cameraSpeedLabel)
+                        {
+                            m_cameraSpeedLabel->setText(
+                                QString("Cam Speed: %1 u/s").arg(camera.baseSpeed, 0, 'f', 1)
+                            );
+                        }
+                    }
+                    break;
                 }
             }
 
