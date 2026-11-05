@@ -18,8 +18,8 @@ namespace Dan {
 		SceneSerializer serializer(m_registry, assetManager, fileSystem);
 
 		// Substitui completamente a criação de entidades em C++
-		bool loaded = serializer.Load("Levels/physics_level.json");
-		DAN_CORE_ASSERT(loaded, "Falha ao carregar o arquivo de nivel principal.");
+		/*bool loaded = serializer.Load("Levels/physics_level.json");
+		DAN_CORE_ASSERT(loaded, "Falha ao carregar o arquivo de nivel principal.");*/
 	}
 
 	GameFramework::~GameFramework()

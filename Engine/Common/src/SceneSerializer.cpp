@@ -3,6 +3,7 @@
 #include <Dan/Common/IO/FileSystem.hpp>
 #include <Dan/Common/Log.hpp>
 #include <Dan/Common/Macros/CoreAssert.hpp>
+#include  <Dan/Common/Assets/TerrainBuilder.hpp>
 
 // Componentes do ECS
 #include <Dan/Common/Math/Transform.hpp>
@@ -10,6 +11,7 @@
 #include <Dan/Common/Components/CameraComponent.hpp>
 #include <Dan/Common/Components/LightComponents.hpp>
 #include <Dan/Common/Components/PhysicsComponents.hpp>
+#include <Dan/Common/Components/TerrainComponent.hpp>
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -178,6 +180,53 @@ namespace Dan {
                     }
 
                     m_registry.emplace<ColliderComponent>(entity, collider);
+                }
+
+                if (entityData.contains("TerrainComponent"))
+                {
+                    auto terrainData = entityData["TerrainComponent"];
+                    TerrainComponent terrain{};
+
+                    terrain.width = terrainData.value("Width", 257);
+                    terrain.height = terrainData.value("Height", 257);
+                    terrain.heightScale = terrainData.value("HeightScale", 50.0f);
+                    terrain.heightmapPath = terrainData.value("HeightmapPath", "");
+
+                    if (terrainData.contains("GridSpacing"))
+                    {
+                        auto spacing = terrainData["GridSpacing"];
+                        terrain.gridSpacing = { spacing[0], spacing[1], spacing[2] };
+                    }
+
+                    // Carregamento dos dados brutos do Heightmap via FileSystem
+                    if (!terrain.heightmapPath.empty())
+                    {
+                        std::vector<uint8_t> rawBytes = m_fileSystem->ReadBinaryFile(terrain.heightmapPath);
+                        if (!rawBytes.empty())
+                        {
+                            terrain.heightData.resize(terrain.width * terrain.height);
+
+                            // Converte os dados de bytes/16-bit para float normalizado [0.0, 1.0]
+                            const uint16_t* raw16 = reinterpret_cast<const uint16_t*>(rawBytes.data());
+                            for (size_t i = 0; i < terrain.heightData.size(); ++i)
+                            {
+                                terrain.heightData[i] = static_cast<float>(raw16[i]) / 65535.0f;
+                            }
+                        }
+                    }
+
+                    // Instancia a malha e adiciona o MeshComponent para renderização
+                    auto terrainMesh = TerrainBuilder::BuildMesh(terrain);
+                    auto vsTerrain = m_assetManager->Load<Shader>("Shaders/vs_mesh.bin");
+                    auto fsTerrain = m_assetManager->Load<Shader>("Shaders/fs_mesh.bin");
+
+                    if (terrainMesh && vsTerrain && fsTerrain)
+                    {
+                        auto material = std::make_shared<Material>(vsTerrain, fsTerrain);
+                        m_registry.emplace<MeshComponent>(entity, MeshComponent{ terrainMesh, material });
+                    }
+
+                    m_registry.emplace<TerrainComponent>(entity, std::move(terrain));
                 }
             }
         }

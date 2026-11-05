@@ -26,6 +26,12 @@ namespace Dan {
 
         // O ContentReader esperado pelo seu AssetManager::Load<T>
         static std::shared_ptr<Mesh> CreateFromBytes(const std::vector<uint8_t>& bytes, const std::string& virtualPath);
+        // Construtor estático para gerar malhas procedurais em memória RAM (Terrenos, Primitivas)
+        static std::shared_ptr<Mesh> CreateFromVertices(
+            const std::vector<Vertex>& vertices,
+            const std::vector<uint32_t>& indices,
+            const std::string& virtualPath = ""
+        );
 
         bgfx::VertexBufferHandle GetVertexBuffer() const { return m_vbh; }
         bgfx::IndexBufferHandle GetIndexBuffer() const { return m_ibh; }

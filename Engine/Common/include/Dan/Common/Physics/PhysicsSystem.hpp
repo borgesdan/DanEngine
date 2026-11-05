@@ -20,6 +20,7 @@ namespace Dan {
 
     private:
         void SyncConstructedBodies(entt::registry& registry);
+        void SyncConstructedTerrain(entt::registry& registry);
         void StepSimulationAndSyncTransforms(entt::registry& registry, float deltaTime);
 
     private:

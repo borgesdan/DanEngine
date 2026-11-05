@@ -1,0 +1,45 @@
+{
+  "Scene": "MainLevel",
+  "Entities": [
+    {
+      "ID": 1,
+      "Name": "TerrainEntity",
+      "Transform": {
+        "Translation": [ 0, 0.0, 0 ],
+        "Rotation": [ 0.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "TerrainComponent": {
+        "Width": 257,
+        "Height": 257,
+        "HeightScale": 40.0,
+        "GridSpacing": [ 1.0, 1.0, 1.0 ],
+        "HeightmapPath": "Textures/Terrain/heightmap_257.raw"
+      }
+    },
+    {
+      "ID": 2,
+      "Name": "MainCamera",
+      "Transform": {
+        "Translation": [ 0.0, 100.0, 200.0 ],
+        "Rotation": [ -25.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "CameraComponent": {
+        "IsPrimary": true,
+        "Fov": 60.0,
+        "NearClip": 0.1,
+        "FarClip": 1000.0
+      }
+    },
+    {
+      "ID": 3,
+      "Name": "SunLight",
+      "DirectionalLightComponent": {
+        "Direction": [ -0.5, -1.0, -0.5 ],
+        "Color": [ 1.0, 1.0, 1.0 ],
+        "Intensity": 1.5
+      }
+    }
+  ]
+}

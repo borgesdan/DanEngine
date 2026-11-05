@@ -16,6 +16,8 @@
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/HeightFieldShape.h>
+#include <Dan/Common/Components/TerrainComponent.hpp>
 
 namespace Dan {
 
@@ -130,11 +132,68 @@ namespace Dan {
     {
         // 1. Instancia corpos novos criados no EnTT
         SyncConstructedBodies(registry);
+        SyncConstructedTerrain(registry);
 
         // 2. Avança a simulação e atualiza os Transforms no ECS
         if (context.time.elapsedGameTime > 0.0f)
         {
             StepSimulationAndSyncTransforms(registry, context.time.elapsedGameTime);
+        }
+    }
+
+    void PhysicsSystem::SyncConstructedTerrain(entt::registry& registry)
+    {
+        auto& bodyInterface = m_impl->physicsSystem.GetBodyInterface();
+
+        auto view = registry.view<Math::Transform, TerrainComponent>();
+        for (auto [entity, transform, terrain] : view.each())
+        {
+            if (terrain.isInitialized || terrain.heightData.empty()) continue;
+
+            const uint32_t sampleCount = terrain.width;
+            if (sampleCount != terrain.height)
+            {
+                DAN_ENGINE_ERROR("PhysicsSystem: Terrenos não quadrados ainda não são suportados para colisão!");
+                continue;
+            }
+
+            // 1. Configura os parâmetros de amostragem do Heightfield no Jolt Physics
+            JPH::HeightFieldShapeSettings settings(
+                terrain.heightData.data(),
+                JPH::Vec3(0.0f, 0.0f, 0.0f),
+                JPH::Vec3(terrain.gridSpacing.x, terrain.heightScale, terrain.gridSpacing.z),
+                sampleCount
+            );
+
+            JPH::Shape::ShapeResult shapeResult = settings.Create();
+            if (shapeResult.HasError())
+            {
+                DAN_ENGINE_ERROR("Falha ao criar HeightFieldShape para física de terreno: {0}", shapeResult.GetError().c_str());
+                continue;
+            }
+
+            JPH::RefConst<JPH::Shape> shape = shapeResult.Get();
+
+            // 2. Terreno é sempre um corpo estático (Static / NON_MOVING)
+            JPH::Vec3 position(transform.translation.x, transform.translation.y, transform.translation.z);
+            JPH::Quat rotation(transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w);
+
+            JPH::BodyCreationSettings bodySettings(
+                shape, position, rotation,
+                JPH::EMotionType::Static,
+                Layers::NON_MOVING
+            );
+            bodySettings.mFriction = 0.8f;
+            bodySettings.mRestitution = 0.05f;
+
+            JPH::Body* body = bodyInterface.CreateBody(bodySettings);
+            if (body)
+            {
+                bodyInterface.AddBody(body->GetID(), JPH::EActivation::DontActivate);
+                terrain.runtimeTerrainBodyID = body->GetID().GetIndexAndSequenceNumber();
+                terrain.isInitialized = true;
+                DAN_ENGINE_INFO("Terreno integrado à física com sucesso (BodyID: {0}).", terrain.runtimeTerrainBodyID);
+            }
         }
     }
 

@@ -23,6 +23,33 @@ namespace Dan {
         if (bgfx::isValid(m_ibh)) bgfx::destroy(m_ibh);
     }
 
+    std::shared_ptr<Mesh> Mesh::CreateFromVertices(
+        const std::vector<Vertex>& vertices,
+        const std::vector<uint32_t>& indices,
+        const std::string& virtualPath)
+    {
+        DAN_CORE_ASSERT(!vertices.empty() && !indices.empty(), "Tentativa de criar Mesh procedural com buffers vazios!");
+
+        auto finalMesh = std::make_shared<Mesh>();
+
+        // 1. Criação do Vertex Buffer copiando a memória RAM para o bgfx de forma assíncrona e segura
+        finalMesh->m_vbh = bgfx::createVertexBuffer(
+            bgfx::copy(vertices.data(), static_cast<uint32_t>(vertices.size() * sizeof(Vertex))),
+            Vertex::GetLayout()
+        );
+
+        // 2. Criação do Index Buffer com suporte a índices de 32-bit (BGFX_BUFFER_INDEX32) para terrenos > 65k vértices
+        uint16_t flags = (vertices.size() > 65535 || indices.size() > 65535) ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE;
+
+        finalMesh->m_ibh = bgfx::createIndexBuffer(
+            bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint32_t))),
+            flags
+        );
+
+        finalMesh->virtualPath = virtualPath;
+        return finalMesh;
+    }
+
     std::shared_ptr<Mesh> Mesh::CreateFromBytes(const std::vector<uint8_t>& bytes, const std::string& virtualPath) {
         Assimp::Importer importer;
 
