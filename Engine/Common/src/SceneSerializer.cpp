@@ -9,6 +9,7 @@
 #include <Dan/Common/Components/MeshComponent.hpp>
 #include <Dan/Common/Components/CameraComponent.hpp>
 #include <Dan/Common/Components/LightComponents.hpp>
+#include <Dan/Common/Components/PhysicsComponents.hpp>
 
 #include <nlohmann/json.hpp>
 #include <fstream>
@@ -18,15 +19,39 @@ using json = nlohmann::json;
 
 namespace Dan {
 
-    // Helper functions locais para conversão de vetores e quatérnios do GLM
+    // Conversões para GLM Vec3 e Quat
     static json SerializeVec3(const Math::Vec3& vec) {
         return json::array({ vec.x, vec.y, vec.z });
     }
 
+    static Math::Vec3 DeserializeVec3(const json& j) {
+        return Math::Vec3(j[0].get<float>(), j[1].get<float>(), j[2].get<float>());
+    }
+
     static json SerializeQuat(const glm::quat& q) {
-        // Converte o Quatérnio para ângulos de Euler (graus) facilitando edição no JSON
         Math::Vec3 eulerDegrees = glm::degrees(glm::eulerAngles(q));
         return SerializeVec3(eulerDegrees);
+    }
+
+    static glm::quat DeserializeQuat(const json& j) {
+        Math::Vec3 eulerDegrees = DeserializeVec3(j);
+        return glm::quat(glm::radians(eulerDegrees));
+    }
+
+    // Converters para MotionType
+    static std::string MotionTypeToString(MotionType motionType) {
+        switch (motionType) {
+        case MotionType::Static:    return "Static";
+        case MotionType::Kinematic: return "Kinematic";
+        case MotionType::Dynamic:
+        default:                    return "Dynamic";
+        }
+    }
+
+    static MotionType StringToMotionType(const std::string& str) {
+        if (str == "Static")    return MotionType::Static;
+        if (str == "Kinematic") return MotionType::Kinematic;
+        return MotionType::Dynamic;
     }
 
     SceneSerializer::SceneSerializer(entt::registry& registry, AssetManager* assetManager, FileSystem* fileSystem)
@@ -100,6 +125,59 @@ namespace Dan {
                     camera.nearClip = camData["NearClip"];
                     camera.farClip = camData["FarClip"];
                     m_registry.emplace<CameraComponent>(entity, camera);
+                }
+
+                // RigidBodyComponent
+                if (entityData.contains("RigidBodyComponent"))
+                {
+                    const auto& rbData = entityData["RigidBodyComponent"];
+                    RigidBodyComponent rb;
+                    rb.motionType = StringToMotionType(rbData.value("MotionType", "Dynamic"));
+                    rb.mass = rbData.value("Mass", 1.0f);
+                    rb.allowSleeping = rbData.value("AllowSleeping", true);
+                    m_registry.emplace<RigidBodyComponent>(entity, rb);
+                }
+
+                // 5. ColliderComponent
+                if (entityData.contains("ColliderComponent"))
+                {
+                    const auto& colData = entityData["ColliderComponent"];
+                    ColliderComponent collider;
+
+                    collider.isTrigger = colData.value("IsTrigger", false);
+                    collider.friction = colData.value("Friction", 0.5f);
+                    collider.restitution = colData.value("Restitution", 0.1f);
+
+                    if (colData.contains("CenterOffset")) {
+                        collider.centerOffset = DeserializeVec3(colData["CenterOffset"]);
+                    }
+
+                    std::string shapeType = colData.value("Shape", "Box");
+                    if (shapeType == "Box") {
+                        BoxColliderShape boxShape;
+                        if (colData.contains("HalfExtents")) {
+                            boxShape.halfExtents = DeserializeVec3(colData["HalfExtents"]);
+                        }
+                        collider.shape = boxShape;
+                    }
+                    else if (shapeType == "Sphere") {
+                        SphereColliderShape sphereShape;
+                        sphereShape.radius = colData.value("Radius", 0.5f);
+                        collider.shape = sphereShape;
+                    }
+                    else if (shapeType == "Capsule") {
+                        CapsuleColliderShape capsuleShape;
+                        capsuleShape.halfHeight = colData.value("HalfHeight", 0.5f);
+                        capsuleShape.radius = colData.value("Radius", 0.25f);
+                        collider.shape = capsuleShape;
+                    }
+                    else if (shapeType == "Mesh") {
+                        MeshColliderShape meshShape;
+                        meshShape.isConvex = colData.value("IsConvex", true);
+                        collider.shape = meshShape;
+                    }
+
+                    m_registry.emplace<ColliderComponent>(entity, collider);
                 }
             }
         }
@@ -179,6 +257,49 @@ namespace Dan {
                 }
 
                 entityJson["MeshComponent"] = meshJson;
+            }
+
+            // D. RigidBodyComponent
+            if (auto* rb = m_registry.try_get<RigidBodyComponent>(entityID))
+            {
+                json rbJson;
+                rbJson["MotionType"] = MotionTypeToString(rb->motionType);
+                rbJson["Mass"] = rb->mass;
+                rbJson["AllowSleeping"] = rb->allowSleeping;
+                entityJson["RigidBodyComponent"] = rbJson;
+            }
+
+            // E. ColliderComponent
+            if (auto* collider = m_registry.try_get<ColliderComponent>(entityID))
+            {
+                json colJson;
+                colJson["CenterOffset"] = SerializeVec3(collider->centerOffset);
+                colJson["IsTrigger"] = collider->isTrigger;
+                colJson["Friction"] = collider->friction;
+                colJson["Restitution"] = collider->restitution;
+
+                std::visit([&colJson](auto&& arg) {
+                    using T = std::decay_t<decltype(arg)>;
+                    if constexpr (std::is_same_v<T, BoxColliderShape>) {
+                        colJson["Shape"] = "Box";
+                        colJson["HalfExtents"] = SerializeVec3(arg.halfExtents);
+                    }
+                    else if constexpr (std::is_same_v<T, SphereColliderShape>) {
+                        colJson["Shape"] = "Sphere";
+                        colJson["Radius"] = arg.radius;
+                    }
+                    else if constexpr (std::is_same_v<T, CapsuleColliderShape>) {
+                        colJson["Shape"] = "Capsule";
+                        colJson["HalfHeight"] = arg.halfHeight;
+                        colJson["Radius"] = arg.radius;
+                    }
+                    else if constexpr (std::is_same_v<T, MeshColliderShape>) {
+                        colJson["Shape"] = "Mesh";
+                        colJson["IsConvex"] = arg.isConvex;
+                    }
+                    }, collider->shape);
+
+                entityJson["ColliderComponent"] = colJson;
             }
 
             // Insere a entidade serializada no array final

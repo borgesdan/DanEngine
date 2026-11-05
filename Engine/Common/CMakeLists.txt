@@ -13,6 +13,7 @@ set(PROJECT_SRC_FILES
 "src/Shader.cpp"
 "src/Texture2D.cpp"
 "src/SceneSerializer.cpp"
+"src/PhysicsSystem.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})
@@ -37,6 +38,8 @@ find_package(EnTT CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
 # Gerenciamento de arquivos json
 find_package(nlohmann_json CONFIG REQUIRED)
+# Física e colisão
+find_package(Jolt CONFIG REQUIRED)
 # Leitura e carregamento de imagens
 find_path(STB_INCLUDE_DIRS "stb_image.h")
 target_include_directories(dan-core PRIVATE ${STB_INCLUDE_DIRS})
@@ -52,6 +55,7 @@ target_link_libraries(${CUR_PROJECT_NAME}
         bgfx::bimg  
         assimp::assimp
         nlohmann_json::nlohmann_json
+        Jolt::Jolt
 )
 
 # --- Exportação da lib ---

@@ -8,6 +8,7 @@
     "assimp",
     "stb",
     "nlohmann-json",
+    "joltphysics",
     {
       "name": "qtbase",
       "features": [

@@ -1,0 +1,72 @@
+{
+  "Scene": "PhysicsLevel",
+  "Entities": [
+    {
+      "ID": 1,
+      "Transform": {
+        "Translation": [ 0.0, 0.0, -5.0 ],
+        "Rotation": [ 0.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "MeshComponent": {
+        "MeshPath": "box.obj",
+        "VertexShader": "Shaders/vs_mesh.bin",
+        "FragmentShader": "Shaders/fs_mesh.bin"
+      },
+      "RigidBodyComponent": {
+        "MotionType": "Dynamic",
+        "Mass": 2.5,
+        "AllowSleeping": true
+      },
+      "ColliderComponent": {
+        "Shape": "Box",
+        "HalfExtents": [ 0.5, 0.5, 0.5 ],
+        "CenterOffset": [ 0.0, 0.0, 0.0 ],
+        "IsTrigger": false,
+        "Friction": 0.6,
+        "Restitution": 0.2
+      }
+    },
+    {
+      "ID": 2,
+      "Name": "MainCamera",
+      "Transform": {
+        "Translation": [ 0.0, 0.0, 5.0 ],
+        "Rotation": [ 0.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "CameraComponent": {
+        "IsPrimary": true,
+        "Fov": 60.0,
+        "NearClip": 0.1,
+        "FarClip": 1000.0
+      }
+    },
+    {
+      "ID": 3,
+      "Transform": {
+        "Translation": [ 0.0, 0.0, 0.0 ],
+        "Rotation": [ 0.0, 0.0, 0.0 ],
+        "Scale": [ 1.0, 1.0, 1.0 ]
+      },
+      "RigidBodyComponent": {
+        "MotionType": "Static",
+        "Mass": 0.0,
+        "AllowSleeping": true
+      },
+      "ColliderComponent": {
+        "Shape": "Box",
+        "HalfExtents": [ 5.0, 0.1, 5.0 ],
+        "CenterOffset": [ 0.0, 0.0, 0.0 ],
+        "IsTrigger": false,
+        "Friction": 0.8,
+        "Restitution": 0.1
+      },
+      "MeshComponent": {
+        "MeshPath": "box.obj",
+        "VertexShader": "Shaders/vs_mesh.bin",
+        "FragmentShader": "Shaders/fs_mesh.bin"
+      }
+    }
+  ]
+}

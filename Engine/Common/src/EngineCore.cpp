@@ -5,15 +5,9 @@
 #include <Dan/Common/IO/FileSystem.hpp>
 #include <Dan/Common/Assets/AssetManager.hpp>
 #include <Dan/Common/GameFramework.hpp>
+#include <Dan/Common/Physics/PhysicsSystem.hpp>
 
-namespace Dan {
-
-	class PhysicsSystem {
-	public:
-		void Update(EngineContext const& context) {}
-
-	};
-
+namespace Dan {	
 	// Recebe os parâmetros e inicializa o modo
 	EngineCore::EngineCore(const EngineInitParams& params) : m_isEditorMode(params.isEditorMode)
 	{
@@ -98,8 +92,8 @@ namespace Dan {
 			}
 		}
 
-		// Os sistemas consomem apenas o contexto (DeltaTime, etc)
-		m_physics->Update(m_context);
+		//Atualização do Motor de Física
+		m_physics->Update(m_gameFramework->GetRegistry(), m_context);
 		m_gameFramework->Update(m_context);
 
 		// O equivalente moderno a RenderBegin, Render e RenderEnd
