@@ -25,6 +25,10 @@ namespace Dan {
             vertices.reserve(terrain.width * terrain.height);
 
             // 1. Geração de Vértices e UVs
+            //Centralizar o Terreno na Origem
+            float halfWidth = (terrain.width - 1) * terrain.gridSpacing.x * 0.5f;
+            float halfHeight = (terrain.height - 1) * terrain.gridSpacing.z * 0.5f;
+
             for (uint32_t z = 0; z < terrain.height; ++z)
             {
                 for (uint32_t x = 0; x < terrain.width; ++x)
@@ -32,10 +36,11 @@ namespace Dan {
                     float heightValue = terrain.heightData[z * terrain.width + x] * terrain.heightScale;
 
                     Vertex v{};
+                    // Centraliza X e Z em relação ao centro (0, 0)
                     v.position = Math::Vec3(
-                        x * terrain.gridSpacing.x,
+                        (x * terrain.gridSpacing.x) - halfWidth,
                         heightValue,
-                        z * terrain.gridSpacing.z
+                        (z * terrain.gridSpacing.z) - halfHeight
                     );
 
                     v.uv = Math::Vec2(
@@ -43,7 +48,7 @@ namespace Dan {
                         (float)z / (terrain.height - 1)
                     );
 
-                    v.normal = Math::Vec3(0.0f, 1.0f, 0.0f); // Será recalculado
+                    v.normal = Math::Vec3(0.0f, 1.0f, 0.0f);
                     v.tangent = Math::Vec3(1.0f, 0.0f, 0.0f);
 
                     vertices.push_back(v);
@@ -60,15 +65,15 @@ namespace Dan {
                     uint32_t bottomLeft = (z + 1) * terrain.width + x;
                     uint32_t bottomRight = bottomLeft + 1;
 
-                    // Triângulo 1
+                    // Triângulo 1 (Winding CW/CCW correto)
                     indices.push_back(topLeft);
-                    indices.push_back(bottomLeft);
                     indices.push_back(topRight);
+                    indices.push_back(bottomLeft);
 
                     // Triângulo 2
                     indices.push_back(topRight);
-                    indices.push_back(bottomLeft);
                     indices.push_back(bottomRight);
+                    indices.push_back(bottomLeft);
                 }
             }
 
