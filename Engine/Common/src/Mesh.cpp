@@ -39,11 +39,8 @@ namespace Dan {
         );
 
         // 2. Criação do Index Buffer com suporte a índices de 32-bit (BGFX_BUFFER_INDEX32) para terrenos > 65k vértices
-        uint16_t flags = (vertices.size() > 65535 || indices.size() > 65535) ? BGFX_BUFFER_INDEX32 : BGFX_BUFFER_NONE;
-
         finalMesh->m_ibh = bgfx::createIndexBuffer(
-            bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint32_t))),
-            flags
+            bgfx::copy(indices.data(), static_cast<uint32_t>(indices.size() * sizeof(uint32_t))), BGFX_BUFFER_INDEX32
         );
 
         finalMesh->virtualPath = virtualPath;
@@ -77,7 +74,7 @@ namespace Dan {
         const aiMesh* ai_mesh = scene->mMeshes[0];
 
         std::vector<Vertex> vertices;
-        std::vector<uint16_t> indices;
+        std::vector<uint32_t> indices;
 
         vertices.reserve(ai_mesh->mNumVertices);
 
@@ -121,7 +118,11 @@ namespace Dan {
         );
 
         finalMesh->m_ibh = bgfx::createIndexBuffer(
-            bgfx::copy(indices.data(), indices.size() * sizeof(uint16_t))
+            bgfx::copy(
+                indices.data(),
+                static_cast<uint32_t>(indices.size() * sizeof(uint32_t))
+            ),
+            BGFX_BUFFER_INDEX32
         );
 
         finalMesh->virtualPath = virtualPath;
