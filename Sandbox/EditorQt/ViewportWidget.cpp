@@ -46,6 +46,7 @@ namespace Dan {
 
     void ViewportWidget::resizeEvent(QResizeEvent* event)
     {
+        //TODO: bug - hoje, redimensionar a janela / editor deforma a imagem(stretch) ou pinta fora da tela.
         QWidget::resizeEvent(event);
     }
 

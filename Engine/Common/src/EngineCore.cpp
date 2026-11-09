@@ -55,7 +55,7 @@ namespace Dan {
 	void EngineCore::Run()
 	{
 		// Trava de segurança: Run() não deve ser chamado no modo Editor
-		// DAN_CORE_ASSERT(!m_isEditorMode, "Run() trava a thread do Qt. Use ProcessFrame() no Editor!");
+		DAN_CORE_ASSERT(!m_isEditorMode, "Run() trava a thread do Qt. Use ProcessFrame() no Editor!");
 
 		m_isRunning = true;
 
@@ -78,7 +78,6 @@ namespace Dan {
 
 		// 2. Alimenta o contexto que será injetado nos sistemas
 		m_context.time = m_clock.GetGameTime();
-		m_context.frameCount++;
 		m_context.frameCount++;
 
 		// 3. Processamento de Eventos (Isolado apenas para o modo Standalone)

@@ -38,6 +38,9 @@ namespace Dan {
             bgfx::destroy(m_sNormal);
             bgfx::destroy(m_sSpecular);
             bgfx::destroy(m_uMaterialProps);
+
+            if (bgfx::isValid(m_defaultWhite))  bgfx::destroy(m_defaultWhite);
+            if (bgfx::isValid(m_defaultNormal)) bgfx::destroy(m_defaultNormal);
         }
 
         void SetAlbedo(std::shared_ptr<Texture2D> tex) { m_albedoTex = tex; }

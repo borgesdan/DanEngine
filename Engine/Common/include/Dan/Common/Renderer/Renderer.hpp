@@ -28,8 +28,12 @@ namespace Dan {
 		void Draw(const RenderData& renderData) const;
 		void EndFrame();
 
+		void SetViewport(uint32_t width, uint32_t height) noexcept;
+
 	private:
 		bgfx::UniformHandle m_uDirLight{ BGFX_INVALID_HANDLE };
+		uint32_t m_width{ 1280 };
+		uint32_t m_height{ 720 };
 	};
 
 } // namespace Dan

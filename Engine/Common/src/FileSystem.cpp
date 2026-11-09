@@ -54,13 +54,7 @@ namespace Dan {
 			DAN_ENGINE_ERROR("FileSystem: Falha ao abrir arquivo de texto. Caminho Absoluto tentando: {0}", absPath.string());
 			DAN_CORE_ASSERT(false, "Falha ao abrir arquivo de texto!");
 			return {};
-		}
-
-		if (!file.is_open())
-		{
-			DAN_ENGINE_ERROR("FileSystem não encontrou ou não conseguiu abrir o arquivo: {0}", fullPath.string());
-			return {};
-		}
+		}		
 
 		std::streamsize size = file.tellg();
 		file.seekg(0, std::ios::beg);

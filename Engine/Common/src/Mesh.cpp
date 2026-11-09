@@ -112,8 +112,6 @@ namespace Dan {
             }
         }
 
-
-
         // 3. Conversão para Buffers da GPU (bgfx)
         auto finalMesh = std::make_shared<Mesh>();
 

@@ -7,7 +7,7 @@
 #include <Dan/Common/IO/FileSystem.hpp>
 
 namespace Dan {   
-    Renderer::Renderer(void* nativeWindowHandle, void* nativeDisplayHandle, uint32_t width, uint32_t height, FileSystem* fs)
+    Renderer::Renderer(void* nativeWindowHandle, void* nativeDisplayHandle, uint32_t width, uint32_t height, FileSystem* fs) : m_width(width), m_height(height)
     {
         DAN_CORE_ASSERT(nativeWindowHandle != nullptr, "Renderizador exige uma janela válida!");
 
@@ -52,7 +52,7 @@ namespace Dan {
     void Renderer::BeginFrame()
     {
         // Define a viewport para cobrir a tela inteira e limpa os buffers
-        bgfx::setViewRect(0, 0, 0, 1280, 720);
+        bgfx::setViewRect(0, 0, 0, static_cast<uint16_t>(m_width), static_cast<uint16_t>(m_height));
         // Garante que a tela será limpa mesmo se nada for desenhado
         bgfx::touch(0); 
     }
@@ -112,6 +112,12 @@ namespace Dan {
     void Renderer::EndFrame()
     {
         bgfx::frame();
+    }
+
+    void Renderer::SetViewport(uint32_t width, uint32_t height) noexcept
+    {
+        m_width = width;
+        m_height = height;
     }
 
 } // namespace Dan
