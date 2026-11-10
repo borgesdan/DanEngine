@@ -17,6 +17,7 @@ set(EDITOR_QT_SRC
     "EditorQt/GizmoSystem.cpp"
 	"EditorQt/Qt/QtMain.cpp"
 	"EditorQt/Resources/resources.qrc"
+    "EditorQt/CreateObjectWidget.cpp"
 )
 
 # ============================================================
