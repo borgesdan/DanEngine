@@ -1,3 +1,4 @@
+# Exporta a estrutura de diretórios do projeto para um arquivo de texto
 
 # Diretório raiz do projeto
 $root = (Get-Location).Path

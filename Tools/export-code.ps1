@@ -1,3 +1,5 @@
+# Exporta o código-fonte do projeto para um único arquivo de texto, 
+# ignorando diretórios específicos e incluindo apenas arquivos com extensões desejadas.
 
 # Diretório raiz do projeto
 $root = (Get-Location).Path
