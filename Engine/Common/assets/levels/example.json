@@ -10,8 +10,10 @@
       },
       "MeshComponent": {
         "MeshPath": "box.obj",
-        "VertexShader": "Shaders/vs_mesh.bin",
-        "FragmentShader": "Shaders/fs_mesh.bin"
+        "Material": {
+          "VertexShader": "Shaders/vs_mesh.bin",
+          "FragmentShader": "Shaders/fs_mesh.bin"
+        }
       }
     },
     {
@@ -26,6 +28,15 @@
         "Fov": 60.0,
         "NearClip": 0.1,
         "FarClip": 1000.0
+      }
+    },
+    {
+      "ID": 1,
+      "Name": "SunLight",
+      "DirectionalLightComponent": {
+        "Direction": [ -0.5, -1.0, -1.5 ],
+        "Color": [ 1.0, 1.0, 1.0 ],
+        "Intensity": 1.5
       }
     }
   ]

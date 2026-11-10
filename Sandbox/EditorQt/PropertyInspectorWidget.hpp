@@ -3,10 +3,8 @@
 #include <QDockWidget>
 #include <QVBoxLayout>
 #include <QFormLayout>
-#include <QDoubleSpinBox>
-#include <QLabel>
+#include <QWidget>
 #include <entt/entt.hpp>
-#include <Dan/Common/Math/Transform.hpp>
 
 namespace Dan {
 
@@ -18,12 +16,13 @@ namespace Dan {
         ~PropertyInspectorWidget() override = default;
 
     public slots:
-        // Chamado quando o usuário seleciona uma entidade no SceneOutliner
+        // Chamado sempre que o usuário seleciona uma entidade no SceneOutliner ou Viewport
         void InspectEntity(entt::entity entity);
 
     private:
         void ClearLayout();
-        void DrawTransformComponent(Math::Transform& transform);
+        void DrawMetaTypeComponent(entt::meta_type metaType, entt::meta_any compInstance);
+        void DrawFieldControl(QFormLayout* formLayout, const std::string& fieldName, entt::meta_data metaData, entt::meta_any compInstance);
 
     private:
         entt::registry& m_registry;

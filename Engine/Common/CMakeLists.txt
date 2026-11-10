@@ -14,6 +14,7 @@ set(PROJECT_SRC_FILES
 "src/Texture2D.cpp"
 "src/SceneSerializer.cpp"
 "src/PhysicsSystem.cpp"
+"src/ReflectionRegistry.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})

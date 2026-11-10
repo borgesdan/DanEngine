@@ -4,9 +4,15 @@
 namespace Dan {
     std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
     std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
+	bool Log::s_isInitialized = false;
 
     void Log::Init()
     {
+		if (s_isInitialized) {
+			DAN_ENGINE_WARN("Log já foi inicializado. Ignorando chamada redundante.");
+			return;
+		}
+
         // Define o padrão visual da mensagem. 
         // Exemplo do padrão abaixo: " ENGINE: Sistema inicializado"
         // %^ e %$ controlam o bloco de cores
@@ -20,5 +26,7 @@ namespace Dan {
         // Inicializa o logger do Client (Jogo/App)
         s_ClientLogger = spdlog::stdout_color_mt("APP");
         s_ClientLogger->set_level(spdlog::level::trace);
+
+        s_isInitialized = true;
     }
 }

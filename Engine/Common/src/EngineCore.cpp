@@ -6,11 +6,13 @@
 #include <Dan/Common/Assets/AssetManager.hpp>
 #include <Dan/Common/GameFramework.hpp>
 #include <Dan/Common/Physics/PhysicsSystem.hpp>
+#include <Dan/Common/Reflection/ReflectionRegistry.hpp>
 
 namespace Dan {	
 	// Recebe os parâmetros e inicializa o modo
 	EngineCore::EngineCore(const EngineInitParams& params) : m_isEditorMode(params.isEditorMode)
 	{
+		Dan::Reflection::RegisterEngineTypes();
 		InitializeSubsystems(params);
 		m_clock.Reset(); // Mantido da implementação original[cite: 5]
 	}
