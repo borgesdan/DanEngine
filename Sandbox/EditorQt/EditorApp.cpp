@@ -8,6 +8,7 @@
 #include <Dan/Common/GameFramework.hpp>
 #include <Dan/Common/Log.hpp>
 #include <Dan/Common/Scene/SceneSerializer.hpp>
+#include <Dan/Common/Scene/EntityFactory.hpp>
 
 namespace Dan {
 
@@ -136,24 +137,31 @@ namespace Dan {
         connect(m_createObjectDock, &CreateObjectWidget::CreateEntityRequested,
             [this](const QString& presetType)
             {
-                auto& reg = m_engineCore->GetGameFramework()->GetRegistry();
-                entt::entity newEntity = reg.create();
-                reg.emplace<Math::Transform>(newEntity);
+                auto& registry = m_engineCore->GetGameFramework()->GetRegistry();
+                auto* assetManager = m_engineCore->GetAssetManager();
 
-                if (presetType == "Static Mesh Entity") {
-                    reg.emplace<MeshComponent>(newEntity);
+                Math::Vec3 spawnPos(0.0f, 0.0f, 0.0f);
+                entt::entity newEntity = entt::null;
+
+                if (presetType == "Empty Entity") {
+                    newEntity = EntityFactory::CreateEmptyEntity(registry, "Empty Entity", spawnPos);
+                }
+                else if (presetType == "Static Mesh Entity") {
+                    newEntity = EntityFactory::CreateStaticMeshEntity(registry, assetManager, "Static Mesh", spawnPos);
                 }
                 else if (presetType == "Directional Light Entity") {
-                    reg.emplace<DirectionalLightComponent>(newEntity);
+                    newEntity = EntityFactory::CreateDirectionalLightEntity(registry, "Directional Light");
                 }
                 else if (presetType == "Camera Entity") {
-                    reg.emplace<CameraComponent>(newEntity);
+                    newEntity = EntityFactory::CreateCameraEntity(registry, "Camera Entity", spawnPos);
                 }
 
-                m_outlinerDock->Refresh();
-                m_outlinerDock->SelectEntityInTree(newEntity);
-                m_selectedEntity = newEntity;
-                m_inspectorDock->InspectEntity(newEntity);
+                if (newEntity != entt::null) {
+                    m_outlinerDock->Refresh();
+                    m_outlinerDock->SelectEntityInTree(newEntity);
+                    m_selectedEntity = newEntity;
+                    m_inspectorDock->InspectEntity(newEntity);
+                }
             });
 
         // Conexão: Seleção de Entidades no Outliner
@@ -162,7 +170,7 @@ namespace Dan {
             m_inspectorDock->InspectEntity(entity);
             });
 
-        m_outlinerDock->Refresh();
+        m_outlinerDock->Refresh();        
     }
 
     // -------------------------------------------------------------------------

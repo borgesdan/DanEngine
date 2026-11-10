@@ -3,8 +3,8 @@
 #include <Dan/Common/Math/Transform.hpp>
 #include <Dan/Common/Components/CameraComponent.hpp>
 #include <Dan/Common/Components/LightComponents.hpp>
-#include <Dan/Common/Components/PhysicsComponents.hpp> // Assumindo que RigidBodyComponent está aqui
-
+#include <Dan/Common/Components/PhysicsComponents.hpp>
+#include <Dan/Common/Components/TagComponent.hpp>
 #include <entt/entt.hpp>
 #include <entt/meta/meta.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -41,6 +41,10 @@ namespace Dan::Reflection {
             .type(Name##_hs, Name) \
             .func<&AssignComponent<Type>>("assign"_hs) \
             .func<&GetComponent<Type>>("get"_hs)
+
+	// Encadeia a reflexão de um membro de dados (variável/campo da struct)
+#define REGISTER_FIELD(Class, Field, Name) \
+        .data<&Class::Field>(entt::hashed_string{Name}, Name)
 
 	// =========================================================================
 	// Registro Principal
@@ -108,11 +112,15 @@ namespace Dan::Reflection {
 			.data<&RigidBodyComponent::mass>("Mass"_hs, "Mass")
 			.data<&RigidBodyComponent::allowSleeping>("AllowSleeping"_hs, "AllowSleeping");
 
+		REGISTER_COMPONENT(TagComponent, "TagComponent")
+			REGISTER_FIELD(TagComponent, tag, "Tag");
+
 		// Nota sobre MeshComponent e ColliderComponent:
 		// Por conterem tipos dinâmicos (std::shared_ptr, std::variant), não é estritamente 
 		// necessário injetar todos os seus membros nativos na interface do entt::meta de forma 
 		// rasa. Caso o Editor Qt precise visualizá-los diretamente no futuro, você precisará 
 		// registrar as classes "Material" e "Mesh" ou tratá-los de forma especializada no Serializer[cite: 11].
+
 	}
 
 } // namespace Dan::Reflection

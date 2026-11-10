@@ -15,6 +15,7 @@ set(PROJECT_SRC_FILES
 "src/SceneSerializer.cpp"
 "src/PhysicsSystem.cpp"
 "src/ReflectionRegistry.cpp"
+"src/EntityFactory.cpp"
 )
 
 add_library(${CUR_PROJECT_NAME} ${PROJECT_SRC_FILES})
