@@ -1,12 +1,13 @@
 #include "PropertyInspectorWidget.hpp"
 #include <Dan/Common/Math/MathTypes.hpp>
-#include <Dan/Common/Components/MeshComponent.hpp> // Incluído para o fallback do Mesh
-
+#include <Dan/Common/Components/MeshComponent.hpp>
+#include <Dan/Common/Components/PhysicsComponents.hpp>
 #include <QGroupBox>
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QComboBox>
 #include <glm/gtc/quaternion.hpp>
 
 using namespace entt::literals;
@@ -233,6 +234,32 @@ namespace Dan {
 
             formLayout->addRow(labelText, rotWidget);
         }
+        else if (propType == entt::resolve<MotionType>())
+        {
+            QComboBox* combo = new QComboBox();
+            combo->addItem("Static", static_cast<int>(MotionType::Static));
+            combo->addItem("Kinematic", static_cast<int>(MotionType::Kinematic));
+            combo->addItem("Dynamic", static_cast<int>(MotionType::Dynamic));
+
+            MotionType currentMt = propValue.cast<MotionType>();
+            combo->setCurrentIndex(combo->findData(static_cast<int>(currentMt)));
+
+            QObject::connect(combo, &QComboBox::currentIndexChanged, [this, metaData, parentType, combo](int index) mutable {
+                if (auto getFunc = parentType.func("get"_hs); getFunc) {
+                    entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
+                    if (freshInstance) {
+                        MotionType newMt = static_cast<MotionType>(combo->itemData(index).toInt());
+                        metaData.set(freshInstance, newMt);
+
+                        if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
+                            assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
+                        }
+                    }
+                }
+                });
+
+            formLayout->addRow(labelText, combo);
+            }
     }
 
     void PropertyInspectorWidget::ClearLayout()

@@ -10,8 +10,10 @@
       },
       "MeshComponent": {
         "MeshPath": "box.obj",
-        "VertexShader": "Shaders/vs_mesh.bin",
-        "FragmentShader": "Shaders/fs_mesh.bin"
+        "Material": {
+          "VertexShader": "Shaders/vs_mesh.bin",
+          "FragmentShader": "Shaders/fs_mesh.bin"
+        }
       },
       "RigidBodyComponent": {
         "MotionType": "Dynamic",
@@ -45,9 +47,9 @@
     {
       "ID": 3,
       "Transform": {
-        "Translation": [ 0.0, 0.0, 0.0 ],
+        "Translation": [ 0.0, -5.0, -5.0 ],
         "Rotation": [ 0.0, 0.0, 0.0 ],
-        "Scale": [ 1.0, 1.0, 1.0 ]
+        "Scale": [ 10.0, 1.0, 10.0 ]
       },
       "RigidBodyComponent": {
         "MotionType": "Static",
@@ -64,8 +66,19 @@
       },
       "MeshComponent": {
         "MeshPath": "box.obj",
-        "VertexShader": "Shaders/vs_mesh.bin",
-        "FragmentShader": "Shaders/fs_mesh.bin"
+        "Material": {
+          "VertexShader": "Shaders/vs_mesh.bin",
+          "FragmentShader": "Shaders/fs_mesh.bin"
+        }
+      }
+    },
+    {
+      "ID": 4,
+      "Name": "SunLight",
+      "DirectionalLightComponent": {
+        "Direction": [ -0.5, -1.0, -0.5 ],
+        "Color": [ 1.0, 1.0, 1.0 ],
+        "Intensity": 1.5
       }
     }
   ]

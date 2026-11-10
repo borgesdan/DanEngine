@@ -77,6 +77,14 @@ namespace Dan {
 					euler.x, euler.y, euler.z
 					});
 			}
+			// MotionType (Enumeração)
+			else if (propValue.allow_cast<MotionType>())
+			{
+				MotionType mt = propValue.cast<MotionType>();
+				if (mt == MotionType::Static) outJson[propName] = "Static";
+				else if (mt == MotionType::Kinematic) outJson[propName] = "Kinematic";
+				else outJson[propName] = "Dynamic";
+			}
 		}
 	}
 
@@ -143,6 +151,16 @@ namespace Dan {
 					glm::quat q(glm::radians(euler));
 
 					metaData.set(instance, q);
+				}
+			}			
+			else if (propValue.type() == entt::resolve<MotionType>())
+			{
+				if (jValue.is_string())
+				{
+					std::string str = jValue.get<std::string>();
+					if (str == "Static") metaData.set(instance, MotionType::Static);
+					else if (str == "Kinematic") metaData.set(instance, MotionType::Kinematic);
+					else metaData.set(instance, MotionType::Dynamic);
 				}
 			}
 		}

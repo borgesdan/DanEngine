@@ -99,9 +99,12 @@ namespace Dan::Reflection {
 			.data<&PointLightComponent::radius>("Radius"_hs, "Radius");
 
 		// 5. Física (Jolt)
+		entt::meta_factory<MotionType>().type("MotionType"_hs, "MotionType");
+		 
 		// Se as enumerations precisarem ser refletidas, devem ser declaradas separadamente,
 		// mas aqui vamos tratar propriedades base para refletir.
 		REGISTER_COMPONENT(RigidBodyComponent, "RigidBodyComponent")
+			.data<&RigidBodyComponent::motionType>("MotionType"_hs, "MotionType")
 			.data<&RigidBodyComponent::mass>("Mass"_hs, "Mass")
 			.data<&RigidBodyComponent::allowSleeping>("AllowSleeping"_hs, "AllowSleeping");
 
