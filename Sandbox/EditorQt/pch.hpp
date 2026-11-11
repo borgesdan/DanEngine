@@ -32,5 +32,7 @@
 #include <QSettings>
 #include <QStringList>
 #include <QTimer>
+#include <QDoubleSpinBox>
+#include <QCheckBox>
 
 

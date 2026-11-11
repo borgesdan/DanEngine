@@ -4,10 +4,9 @@
 #include <Dan/Common/Components/PhysicsComponents.hpp>
 #include <Dan/Common/Components/TagComponent.hpp>
 
-#include <QDoubleSpinBox>
-#include <QCheckBox>
 #include <QHBoxLayout>
 #include <glm/gtc/quaternion.hpp>
+#include "pch.hpp"
 
 using namespace entt::literals;
 
@@ -36,15 +35,14 @@ namespace Dan {
             return;
         }
 
-        // 1. Cabeçalho Fixo: General (ID, Name, Layer)
+        // 1. Cabeçalho Fixo "General"
         DrawGeneralHeader();
 
-        // 2. Varre TODOS os componentes registrados dinamicamente via entt::meta
+        // 2. Varre dinamicamente todos os componentes registrados via entt::meta
         for (auto [typeId, metaType] : entt::resolve())
         {
-            // Ignora o TagComponent no loop dinâmico pois ele já é desenhado no General
             if (metaType.id() == "TagComponent"_hs) {
-                continue;
+                continue; // Exibido no cabeçalho General
             }
 
             if (auto getFunc = metaType.func("get"_hs); getFunc)
@@ -57,7 +55,7 @@ namespace Dan {
             }
         }
 
-        // 3. Fallback Hardcoded para componentes dinâmicos (MeshComponent / TerrainComponent)
+        // 3. Fallback para componentes complexos (MeshComponent)
         if (auto* meshComp = m_registry.try_get<MeshComponent>(m_selectedEntity))
         {
             QGroupBox* group = new QGroupBox("Mesh Component", m_containerWidget);
@@ -82,13 +80,11 @@ namespace Dan {
         QGroupBox* generalGroup = new QGroupBox("General", m_containerWidget);
         QFormLayout* formLayout = new QFormLayout(generalGroup);
 
-        // Campo 1: ID da Entidade (Somente Leitura)
         uint32_t rawID = static_cast<uint32_t>(m_selectedEntity);
         QLabel* idLabel = new QLabel(QString::number(rawID), generalGroup);
         idLabel->setStyleSheet("color: #888888; font-weight: bold;");
         formLayout->addRow("ID:", idLabel);
 
-        // Campo 2: Name (TagComponent)
         auto* tagComp = m_registry.try_get<TagComponent>(m_selectedEntity);
         QString currentName = (tagComp && !tagComp->tag.empty()) ? QString::fromStdString(tagComp->tag) : QString("Entity_%1").arg(rawID);
 
@@ -104,12 +100,10 @@ namespace Dan {
                 m_registry.emplace<TagComponent>(m_selectedEntity, TagComponent{ newName });
             }
 
-            // Notifica os outros painéis (SceneOutliner) para atualizar o rótulo
             emit EntityRenamed(m_selectedEntity, QString::fromStdString(newName));
             });
         formLayout->addRow("Name:", nameEdit);
 
-        // Campo 3: Layer
         QComboBox* layerCombo = new QComboBox(generalGroup);
         layerCombo->addItems({ "Main Layer", "Environment", "Characters", "Props" });
 
@@ -158,7 +152,20 @@ namespace Dan {
         entt::meta_type parentType = compInstance.type();
         QString labelText = QString::fromStdString(fieldName);
 
-        // 1. Campo float
+        // Helper para atualizar e reinjetar no ECS
+        auto updateFieldInECS = [this, parentType, metaData](auto newValue) {
+            if (auto getFunc = parentType.func("get"_hs); getFunc) {
+                entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
+                if (freshInstance) {
+                    metaData.set(freshInstance, newValue);
+                    if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
+                        assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
+                    }
+                }
+            }
+            };
+
+        // 1. float
         if (propType == entt::resolve<float>())
         {
             QDoubleSpinBox* spin = new QDoubleSpinBox();
@@ -166,41 +173,64 @@ namespace Dan {
             spin->setSingleStep(0.1);
             spin->setValue(static_cast<double>(propValue.cast<float>()));
 
-            QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType](double val) mutable {
-                if (auto getFunc = parentType.func("get"_hs); getFunc) {
-                    entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
-                    if (freshInstance) {
-                        metaData.set(freshInstance, static_cast<float>(val));
-                        if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
-                            assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
-                        }
-                    }
-                }
+            connect(spin, &QDoubleSpinBox::valueChanged, [updateFieldInECS](double val) {
+                updateFieldInECS(static_cast<float>(val));
                 });
 
             formLayout->addRow(labelText, spin);
         }
-        // 2. Campo bool
+        // 2. double
+        else if (propType == entt::resolve<double>())
+        {
+            QDoubleSpinBox* spin = new QDoubleSpinBox();
+            spin->setRange(-100000.0, 100000.0);
+            spin->setSingleStep(0.1);
+            spin->setValue(propValue.cast<double>());
+
+            connect(spin, &QDoubleSpinBox::valueChanged, [updateFieldInECS](double val) {
+                updateFieldInECS(val);
+                });
+
+            formLayout->addRow(labelText, spin);
+        }
+        // 3. int / int32_t / uint32_t
+        else if (propType == entt::resolve<int>() || propType == entt::resolve<uint32_t>())
+        {
+            QSpinBox* spin = new QSpinBox();
+            spin->setRange(-100000, 100000);
+            spin->setValue(propType == entt::resolve<int>() ? propValue.cast<int>() : static_cast<int>(propValue.cast<uint32_t>()));
+
+            connect(spin, &QSpinBox::valueChanged, [updateFieldInECS, propType](int val) {
+                if (propType == entt::resolve<int>()) updateFieldInECS(val);
+                else updateFieldInECS(static_cast<uint32_t>(val));
+                });
+
+            formLayout->addRow(labelText, spin);
+        }
+        // 4. bool
         else if (propType == entt::resolve<bool>())
         {
             QCheckBox* checkBox = new QCheckBox();
             checkBox->setChecked(propValue.cast<bool>());
 
-            QObject::connect(checkBox, &QCheckBox::toggled, [this, metaData, parentType](bool checked) mutable {
-                if (auto getFunc = parentType.func("get"_hs); getFunc) {
-                    entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
-                    if (freshInstance) {
-                        metaData.set(freshInstance, checked);
-                        if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
-                            assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
-                        }
-                    }
-                }
+            connect(checkBox, &QCheckBox::toggled, [updateFieldInECS](bool checked) {
+                updateFieldInECS(checked);
                 });
 
             formLayout->addRow(labelText, checkBox);
         }
-        // 3. Campo Math::Vec3
+        // 5. std::string
+        else if (propType == entt::resolve<std::string>())
+        {
+            QLineEdit* lineEdit = new QLineEdit(QString::fromStdString(propValue.cast<std::string>()));
+
+            connect(lineEdit, &QLineEdit::textChanged, [updateFieldInECS](const QString& text) {
+                updateFieldInECS(text.toStdString());
+                });
+
+            formLayout->addRow(labelText, lineEdit);
+        }
+        // 6. Math::Vec3
         else if (propType == entt::resolve<Math::Vec3>())
         {
             Math::Vec3 vec = propValue.cast<Math::Vec3>();
@@ -209,13 +239,17 @@ namespace Dan {
             QHBoxLayout* vecLayout = new QHBoxLayout(vecWidget);
             vecLayout->setContentsMargins(0, 0, 0, 0);
 
-            auto createAxisSpin = [this, &vecLayout, metaData, parentType](float initialVal, auto axisSetter) mutable {
+            auto createAxisSpin = [this, &vecLayout, metaData, parentType](float initialVal, const QString& axisLabel, auto axisSetter) {
+                QLabel* lbl = new QLabel(axisLabel);
+                lbl->setStyleSheet("color: #888; font-weight: bold;");
+                vecLayout->addWidget(lbl);
+
                 QDoubleSpinBox* spin = new QDoubleSpinBox();
                 spin->setRange(-10000.0, 10000.0);
                 spin->setSingleStep(0.1);
                 spin->setValue(static_cast<double>(initialVal));
 
-                QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType, axisSetter](double val) mutable {
+                connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType, axisSetter](double val) {
                     if (auto getFunc = parentType.func("get"_hs); getFunc) {
                         entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
                         if (freshInstance) {
@@ -233,13 +267,57 @@ namespace Dan {
                 vecLayout->addWidget(spin);
                 };
 
-            createAxisSpin(vec.x, [](Math::Vec3& v, float val) { v.x = val; });
-            createAxisSpin(vec.y, [](Math::Vec3& v, float val) { v.y = val; });
-            createAxisSpin(vec.z, [](Math::Vec3& v, float val) { v.z = val; });
+            createAxisSpin(vec.x, "X", [](Math::Vec3& v, float val) { v.x = val; });
+            createAxisSpin(vec.y, "Y", [](Math::Vec3& v, float val) { v.y = val; });
+            createAxisSpin(vec.z, "Z", [](Math::Vec3& v, float val) { v.z = val; });
 
             formLayout->addRow(labelText, vecWidget);
         }
-        // 4. Campo glm::quat (Convertido para Euler)
+        // 7. Math::Vec4
+        else if (propType == entt::resolve<Math::Vec4>())
+        {
+            Math::Vec4 vec = propValue.cast<Math::Vec4>();
+
+            QWidget* vecWidget = new QWidget();
+            QHBoxLayout* vecLayout = new QHBoxLayout(vecWidget);
+            vecLayout->setContentsMargins(0, 0, 0, 0);
+
+            auto createAxisSpin = [this, &vecLayout, metaData, parentType](float initialVal, const QString& axisLabel, auto axisSetter) {
+                QLabel* lbl = new QLabel(axisLabel);
+                lbl->setStyleSheet("color: #888; font-weight: bold;");
+                vecLayout->addWidget(lbl);
+
+                QDoubleSpinBox* spin = new QDoubleSpinBox();
+                spin->setRange(-10000.0, 10000.0);
+                spin->setSingleStep(0.1);
+                spin->setValue(static_cast<double>(initialVal));
+
+                connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType, axisSetter](double val) {
+                    if (auto getFunc = parentType.func("get"_hs); getFunc) {
+                        entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
+                        if (freshInstance) {
+                            Math::Vec4 currentVec = metaData.get(freshInstance).cast<Math::Vec4>();
+                            axisSetter(currentVec, static_cast<float>(val));
+                            metaData.set(freshInstance, currentVec);
+
+                            if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
+                                assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
+                            }
+                        }
+                    }
+                    });
+
+                vecLayout->addWidget(spin);
+                };
+
+            createAxisSpin(vec.x, "X", [](Math::Vec4& v, float val) { v.x = val; });
+            createAxisSpin(vec.y, "Y", [](Math::Vec4& v, float val) { v.y = val; });
+            createAxisSpin(vec.z, "Z", [](Math::Vec4& v, float val) { v.z = val; });
+            createAxisSpin(vec.w, "W", [](Math::Vec4& v, float val) { v.w = val; });
+
+            formLayout->addRow(labelText, vecWidget);
+        }
+        // 8. glm::quat (Convertido para Euler em graus)
         else if (propType == entt::resolve<glm::quat>())
         {
             glm::quat q = propValue.cast<glm::quat>();
@@ -249,13 +327,17 @@ namespace Dan {
             QHBoxLayout* rotLayout = new QHBoxLayout(rotWidget);
             rotLayout->setContentsMargins(0, 0, 0, 0);
 
-            auto createRotSpin = [this, &rotLayout, metaData, parentType](float initialVal, int axisIndex) mutable {
+            auto createRotSpin = [this, &rotLayout, metaData, parentType](float initialVal, const QString& axisLabel, int axisIndex) {
+                QLabel* lbl = new QLabel(axisLabel);
+                lbl->setStyleSheet("color: #888; font-weight: bold;");
+                rotLayout->addWidget(lbl);
+
                 QDoubleSpinBox* spin = new QDoubleSpinBox();
                 spin->setRange(-360.0, 360.0);
                 spin->setSingleStep(1.0);
                 spin->setValue(static_cast<double>(initialVal));
 
-                QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType, axisIndex](double val) mutable {
+                connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType, axisIndex](double val) {
                     if (auto getFunc = parentType.func("get"_hs); getFunc) {
                         entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
                         if (freshInstance) {
@@ -279,12 +361,13 @@ namespace Dan {
                 rotLayout->addWidget(spin);
                 };
 
-            createRotSpin(eulerDeg.x, 0);
-            createRotSpin(eulerDeg.y, 1);
-            createRotSpin(eulerDeg.z, 2);
+            createRotSpin(eulerDeg.x, "X", 0);
+            createRotSpin(eulerDeg.y, "Y", 1);
+            createRotSpin(eulerDeg.z, "Z", 2);
 
             formLayout->addRow(labelText, rotWidget);
         }
+        // 9. MotionType Enum
         else if (propType == entt::resolve<MotionType>())
         {
             QComboBox* combo = new QComboBox();
@@ -295,18 +378,9 @@ namespace Dan {
             MotionType currentMt = propValue.cast<MotionType>();
             combo->setCurrentIndex(combo->findData(static_cast<int>(currentMt)));
 
-            QObject::connect(combo, &QComboBox::currentIndexChanged, [this, metaData, parentType, combo](int index) mutable {
-                if (auto getFunc = parentType.func("get"_hs); getFunc) {
-                    entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
-                    if (freshInstance) {
-                        MotionType newMt = static_cast<MotionType>(combo->itemData(index).toInt());
-                        metaData.set(freshInstance, newMt);
-
-                        if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
-                            assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
-                        }
-                    }
-                }
+            connect(combo, &QComboBox::currentIndexChanged, [updateFieldInECS, combo](int index) {
+                MotionType newMt = static_cast<MotionType>(combo->itemData(index).toInt());
+                updateFieldInECS(newMt);
                 });
 
             formLayout->addRow(labelText, combo);

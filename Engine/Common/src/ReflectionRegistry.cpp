@@ -1,14 +1,14 @@
 #include <Dan/Common/Reflection/ReflectionRegistry.hpp>
 #include <Dan/Common/Math/MathTypes.hpp>
 #include <Dan/Common/Math/Transform.hpp>
+#include <Dan/Common/Components/TagComponent.hpp>
 #include <Dan/Common/Components/CameraComponent.hpp>
 #include <Dan/Common/Components/LightComponents.hpp>
 #include <Dan/Common/Components/PhysicsComponents.hpp>
-#include <Dan/Common/Components/TagComponent.hpp>
-#include <entt/entt.hpp>
-#include <entt/meta/meta.hpp>
-#include <glm/gtc/quaternion.hpp>
 
+#include <entt/entt.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <string>
 namespace Dan::Reflection {
 
 	using namespace entt::literals;
@@ -52,74 +52,51 @@ namespace Dan::Reflection {
 	void RegisterEngineTypes()
 	{
 
-		// 1. Tipos Básicos e Matemáticos[cite: 3]
-		entt::meta_factory<Math::Vec3>()
-			.type("Vec3"_hs, "Vec3")
-			.data<&Math::Vec3::x>("X"_hs)
-			.data<&Math::Vec3::y>("Y"_hs)
-			.data<&Math::Vec3::z>("Z"_hs);
+        // 1. Tipos Matemáticos e Primitivos
+        entt::meta_factory<std::string>().type("String"_hs, "String");
+        entt::meta_factory<Math::Vec3>().type("Vec3"_hs, "Vec3");
+        entt::meta_factory<Math::Vec4>().type("Vec4"_hs, "Vec4");
+        entt::meta_factory<glm::quat>().type("Quat"_hs, "Quat");
+        entt::meta_factory<MotionType>().type("MotionType"_hs, "MotionType");
 
-		entt::meta_factory<Math::Vec4>()
-			.type("Vec4"_hs, "Vec4")
-			.data<&Math::Vec4::x>("X"_hs)
-			.data<&Math::Vec4::y>("Y"_hs)
-			.data<&Math::Vec4::z>("Z"_hs)
-			.data<&Math::Vec4::w>("W"_hs);
+        // 2. TagComponent
+        REGISTER_COMPONENT(TagComponent, "TagComponent")
+            REGISTER_FIELD(TagComponent, tag, "Tag")
+            REGISTER_FIELD(TagComponent, layer, "Layer");
 
-		// GLM Quat (Rotina interna opaca, o SceneSerializer o converte para Euler no JSON)[cite: 8]
-		entt::meta_factory<glm::quat>()
-			.type("Quat"_hs, "Quat")
-			.data<&glm::quat::x>("X"_hs)
-			.data<&glm::quat::y>("Y"_hs)
-			.data<&glm::quat::z>("Z"_hs)
-			.data<&glm::quat::w>("W"_hs);
+        // 3. Transform
+        REGISTER_COMPONENT(Math::Transform, "Transform")
+            REGISTER_FIELD(Math::Transform, translation, "Translation")
+            REGISTER_FIELD(Math::Transform, rotation, "Rotation")
+            REGISTER_FIELD(Math::Transform, scale, "Scale");
 
-		// 2. Transform
-		REGISTER_COMPONENT(Math::Transform, "Transform")
-			.data<&Math::Transform::translation>("Translation"_hs, "Translation")
-			.data<&Math::Transform::rotation>("Rotation"_hs, "Rotation")
-			.data<&Math::Transform::scale>("Scale"_hs, "Scale");
+        // 4. CameraComponent
+        REGISTER_COMPONENT(CameraComponent, "CameraComponent")
+            REGISTER_FIELD(CameraComponent, isPrimary, "IsPrimary")
+            REGISTER_FIELD(CameraComponent, fov, "Fov")
+            REGISTER_FIELD(CameraComponent, nearClip, "NearClip")
+            REGISTER_FIELD(CameraComponent, farClip, "FarClip")
+            REGISTER_FIELD(CameraComponent, yaw, "Yaw")
+            REGISTER_FIELD(CameraComponent, pitch, "Pitch")
+            REGISTER_FIELD(CameraComponent, mouseSensitivity, "MouseSensitivity")
+            REGISTER_FIELD(CameraComponent, baseSpeed, "BaseSpeed");
 
-		// 3. Câmera
-		REGISTER_COMPONENT(CameraComponent, "CameraComponent")
-			.data<&CameraComponent::isPrimary>("IsPrimary"_hs, "IsPrimary")
-			.data<&CameraComponent::fov>("Fov"_hs, "Fov")
-			.data<&CameraComponent::nearClip>("NearClip"_hs, "NearClip")
-			.data<&CameraComponent::farClip>("FarClip"_hs, "FarClip")
-			.data<&CameraComponent::yaw>("Yaw"_hs, "Yaw")
-			.data<&CameraComponent::pitch>("Pitch"_hs, "Pitch")
-			.data<&CameraComponent::mouseSensitivity>("MouseSensitivity"_hs, "MouseSensitivity")
-			.data<&CameraComponent::baseSpeed>("BaseSpeed"_hs, "BaseSpeed");
+        // 5. LightComponents
+        REGISTER_COMPONENT(DirectionalLightComponent, "DirectionalLightComponent")
+            REGISTER_FIELD(DirectionalLightComponent, direction, "Direction")
+            REGISTER_FIELD(DirectionalLightComponent, color, "Color")
+            REGISTER_FIELD(DirectionalLightComponent, intensity, "Intensity");
 
-		// 4. Luzes
-		REGISTER_COMPONENT(DirectionalLightComponent, "DirectionalLightComponent")
-			.data<&DirectionalLightComponent::direction>("Direction"_hs, "Direction")
-			.data<&DirectionalLightComponent::color>("Color"_hs, "Color")
-			.data<&DirectionalLightComponent::intensity>("Intensity"_hs, "Intensity");
+        REGISTER_COMPONENT(PointLightComponent, "PointLightComponent")
+            REGISTER_FIELD(PointLightComponent, color, "Color")
+            REGISTER_FIELD(PointLightComponent, intensity, "Intensity")
+            REGISTER_FIELD(PointLightComponent, radius, "Radius");
 
-		REGISTER_COMPONENT(PointLightComponent, "PointLightComponent")
-			.data<&PointLightComponent::color>("Color"_hs, "Color")
-			.data<&PointLightComponent::intensity>("Intensity"_hs, "Intensity")
-			.data<&PointLightComponent::radius>("Radius"_hs, "Radius");
-
-		// 5. Física (Jolt)
-		entt::meta_factory<MotionType>().type("MotionType"_hs, "MotionType");
-		 
-		// Se as enumerations precisarem ser refletidas, devem ser declaradas separadamente,
-		// mas aqui vamos tratar propriedades base para refletir.
-		REGISTER_COMPONENT(RigidBodyComponent, "RigidBodyComponent")
-			.data<&RigidBodyComponent::motionType>("MotionType"_hs, "MotionType")
-			.data<&RigidBodyComponent::mass>("Mass"_hs, "Mass")
-			.data<&RigidBodyComponent::allowSleeping>("AllowSleeping"_hs, "AllowSleeping");
-
-		REGISTER_COMPONENT(TagComponent, "TagComponent")
-			REGISTER_FIELD(TagComponent, tag, "Tag");
-
-		// Nota sobre MeshComponent e ColliderComponent:
-		// Por conterem tipos dinâmicos (std::shared_ptr, std::variant), não é estritamente 
-		// necessário injetar todos os seus membros nativos na interface do entt::meta de forma 
-		// rasa. Caso o Editor Qt precise visualizá-los diretamente no futuro, você precisará 
-		// registrar as classes "Material" e "Mesh" ou tratá-los de forma especializada no Serializer[cite: 11].
+        // 6. RigidBodyComponent
+        REGISTER_COMPONENT(RigidBodyComponent, "RigidBodyComponent")
+            REGISTER_FIELD(RigidBodyComponent, motionType, "MotionType")
+            REGISTER_FIELD(RigidBodyComponent, mass, "Mass")
+            REGISTER_FIELD(RigidBodyComponent, allowSleeping, "AllowSleeping");
 
 	}
 
