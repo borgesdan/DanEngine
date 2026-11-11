@@ -51,7 +51,7 @@ namespace Dan {
     }
 
     // =========================================================================
-    // FLUXO PRINCIPAL DE INICIALIZAÇÃO (Limpo e Legível)
+    // FLUXO PRINCIPAL DE INICIALIZAÇÃO
     // =========================================================================
     bool EditorApp::Initialize()
     {
@@ -170,7 +170,14 @@ namespace Dan {
             m_inspectorDock->InspectEntity(entity);
             });
 
-        m_outlinerDock->Refresh();        
+        // Conexão: Renomeação da Entidade no Inspector atualiza a árvore do Outliner
+        connect(m_inspectorDock, &PropertyInspectorWidget::EntityRenamed,
+            [this](entt::entity entity, const QString& newName) {
+                m_outlinerDock->Refresh();
+                m_outlinerDock->SelectEntityInTree(entity);
+            });
+
+        m_outlinerDock->Refresh();
     }
 
     // -------------------------------------------------------------------------

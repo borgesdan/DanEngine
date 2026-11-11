@@ -2,6 +2,7 @@
 #include <Dan/Common/Components/CameraComponent.hpp>
 #include <Dan/Common/Components/LightComponents.hpp>
 #include <Dan/Common/Components/MeshComponent.hpp>
+#include <Dan/Common/Components/TagComponent.hpp>
 #include <QVBoxLayout>
 
 namespace Dan {
@@ -30,9 +31,13 @@ namespace Dan {
         {
             uint32_t rawID = static_cast<uint32_t>(entityID);
 
-            // Identifica o tipo primário do componente para legibilidade
-            QString entityLabel = "Entity";
-            if (m_registry.all_of<CameraComponent>(entityID)) {
+            // Prioriza o TagComponent para definir o nome exibido na árvore
+            QString entityLabel;
+            if (auto* tagComp = m_registry.try_get<TagComponent>(entityID); tagComp && !tagComp->tag.empty())
+            {
+                entityLabel = QString::fromStdString(tagComp->tag);
+            }
+            else if (m_registry.all_of<CameraComponent>(entityID)) {
                 entityLabel = "Main Camera";
             }
             else if (m_registry.all_of<DirectionalLightComponent>(entityID)) {
@@ -40,6 +45,9 @@ namespace Dan {
             }
             else if (m_registry.all_of<MeshComponent>(entityID)) {
                 entityLabel = "Mesh Object";
+            }
+            else {
+                entityLabel = QString("Entity_%1").arg(rawID);
             }
 
             QTreeWidgetItem* item = new QTreeWidgetItem(m_treeWidget);
@@ -86,6 +94,6 @@ namespace Dan {
 
         uint32_t rawID = selectedItems.first()->data(0, Qt::UserRole).toUInt();
         emit EntitySelected(static_cast<entt::entity>(rawID));
-    }    
+    }
 
 } // namespace Dan

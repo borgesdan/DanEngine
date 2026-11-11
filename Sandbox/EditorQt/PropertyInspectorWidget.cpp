@@ -2,12 +2,11 @@
 #include <Dan/Common/Math/MathTypes.hpp>
 #include <Dan/Common/Components/MeshComponent.hpp>
 #include <Dan/Common/Components/PhysicsComponents.hpp>
-#include <QGroupBox>
-#include <QLabel>
+#include <Dan/Common/Components/TagComponent.hpp>
+
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 #include <QHBoxLayout>
-#include <QComboBox>
 #include <glm/gtc/quaternion.hpp>
 
 using namespace entt::literals;
@@ -37,15 +36,19 @@ namespace Dan {
             return;
         }
 
-        QLabel* idLabel = new QLabel(QString("<b>Entidade ID: %1</b>").arg(static_cast<uint32_t>(m_selectedEntity)));
-        m_mainLayout->addWidget(idLabel);
+        // 1. Cabeçalho Fixo: General (ID, Name, Layer)
+        DrawGeneralHeader();
 
-        // 1. Varre TODOS os componentes registrados dinamicamente via entt::meta
+        // 2. Varre TODOS os componentes registrados dinamicamente via entt::meta
         for (auto [typeId, metaType] : entt::resolve())
         {
+            // Ignora o TagComponent no loop dinâmico pois ele já é desenhado no General
+            if (metaType.id() == "TagComponent"_hs) {
+                continue;
+            }
+
             if (auto getFunc = metaType.func("get"_hs); getFunc)
             {
-                // Agora recebe um meta_any. Se GetComponent retornar nulo, compInstance avaliará para false.
                 entt::meta_any compInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
 
                 if (compInstance) {
@@ -54,7 +57,7 @@ namespace Dan {
             }
         }
 
-        // 2. Fallback Hardcoded para componentes dinâmicos (MeshComponent / TerrainComponent)
+        // 3. Fallback Hardcoded para componentes dinâmicos (MeshComponent / TerrainComponent)
         if (auto* meshComp = m_registry.try_get<MeshComponent>(m_selectedEntity))
         {
             QGroupBox* group = new QGroupBox("Mesh Component", m_containerWidget);
@@ -72,6 +75,59 @@ namespace Dan {
 
             m_mainLayout->addWidget(group);
         }
+    }
+
+    void PropertyInspectorWidget::DrawGeneralHeader()
+    {
+        QGroupBox* generalGroup = new QGroupBox("General", m_containerWidget);
+        QFormLayout* formLayout = new QFormLayout(generalGroup);
+
+        // Campo 1: ID da Entidade (Somente Leitura)
+        uint32_t rawID = static_cast<uint32_t>(m_selectedEntity);
+        QLabel* idLabel = new QLabel(QString::number(rawID), generalGroup);
+        idLabel->setStyleSheet("color: #888888; font-weight: bold;");
+        formLayout->addRow("ID:", idLabel);
+
+        // Campo 2: Name (TagComponent)
+        auto* tagComp = m_registry.try_get<TagComponent>(m_selectedEntity);
+        QString currentName = (tagComp && !tagComp->tag.empty()) ? QString::fromStdString(tagComp->tag) : QString("Entity_%1").arg(rawID);
+
+        QLineEdit* nameEdit = new QLineEdit(currentName, generalGroup);
+        connect(nameEdit, &QLineEdit::editingFinished, [this, nameEdit]() {
+            if (m_selectedEntity == entt::null || !m_registry.valid(m_selectedEntity)) return;
+
+            std::string newName = nameEdit->text().toStdString();
+            if (auto* tag = m_registry.try_get<TagComponent>(m_selectedEntity)) {
+                tag->tag = newName;
+            }
+            else {
+                m_registry.emplace<TagComponent>(m_selectedEntity, TagComponent{ newName });
+            }
+
+            // Notifica os outros painéis (SceneOutliner) para atualizar o rótulo
+            emit EntityRenamed(m_selectedEntity, QString::fromStdString(newName));
+            });
+        formLayout->addRow("Name:", nameEdit);
+
+        // Campo 3: Layer
+        QComboBox* layerCombo = new QComboBox(generalGroup);
+        layerCombo->addItems({ "Main Layer", "Environment", "Characters", "Props" });
+
+        if (tagComp) {
+            int index = layerCombo->findText(QString::fromStdString(tagComp->layer));
+            if (index != -1) layerCombo->setCurrentIndex(index);
+        }
+
+        connect(layerCombo, &QComboBox::currentTextChanged, [this](const QString& text) {
+            if (m_selectedEntity == entt::null || !m_registry.valid(m_selectedEntity)) return;
+
+            if (auto* tag = m_registry.try_get<TagComponent>(m_selectedEntity)) {
+                tag->layer = text.toStdString();
+            }
+            });
+        formLayout->addRow("Layer:", layerCombo);
+
+        m_mainLayout->addWidget(generalGroup);
     }
 
     void PropertyInspectorWidget::DrawMetaTypeComponent(entt::meta_type metaType, entt::meta_any compInstance)
@@ -99,7 +155,7 @@ namespace Dan {
         if (!propValue) return;
 
         entt::meta_type propType = propValue.type();
-        entt::meta_type parentType = compInstance.type(); // Pega o tipo pai (ex: Math::Transform)
+        entt::meta_type parentType = compInstance.type();
         QString labelText = QString::fromStdString(fieldName);
 
         // 1. Campo float
@@ -111,14 +167,10 @@ namespace Dan {
             spin->setValue(static_cast<double>(propValue.cast<float>()));
 
             QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this, metaData, parentType](double val) mutable {
-                // Busca o componente fresquinho do ECS
                 if (auto getFunc = parentType.func("get"_hs); getFunc) {
                     entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
                     if (freshInstance) {
-                        // Altera a propriedade
                         metaData.set(freshInstance, static_cast<float>(val));
-
-                        // Injeta a estrutura modificada de volta na Engine!
                         if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
                             assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
                         }
@@ -139,7 +191,6 @@ namespace Dan {
                     entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
                     if (freshInstance) {
                         metaData.set(freshInstance, checked);
-
                         if (auto assignFunc = parentType.func("assign"_hs); assignFunc) {
                             assignFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity, freshInstance);
                         }
@@ -259,7 +310,7 @@ namespace Dan {
                 });
 
             formLayout->addRow(labelText, combo);
-            }
+        }
     }
 
     void PropertyInspectorWidget::ClearLayout()
