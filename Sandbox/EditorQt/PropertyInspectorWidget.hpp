@@ -5,6 +5,11 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QComboBox>
+#include <QSpinBox>
+#include <QDoubleSpinBox>
+#include <QCheckBox>
+#include <QPushButton>
+#include <QMenu>
 #include <QLabel>
 #include <QGroupBox>
 #include <QWidget>
@@ -20,21 +25,18 @@ namespace Dan {
         ~PropertyInspectorWidget() override = default;
 
     signals:
-        // Sinal emitido quando o nome da entidade é alterado na UI
         void EntityRenamed(entt::entity entity, const QString& newName);
 
     public slots:
-        // Chamado sempre que o usuário seleciona uma entidade no SceneOutliner ou Viewport
         void InspectEntity(entt::entity entity);
 
     private:
         void ClearLayout();
-
-        // Desenha o cabeçalho fixo "General" (ID, Name, Layer)
         void DrawGeneralHeader();
-
         void DrawMetaTypeComponent(entt::meta_type metaType, entt::meta_any compInstance);
-        void DrawFieldControl(QFormLayout* formLayout, const std::string& fieldName, entt::meta_data metaData, entt::meta_any compInstance);
+        void DrawFieldControl(QFormLayout* formLayout, const std::string& fieldName, entt::meta_data metaData, entt::meta_any compInstance);        
+        void DrawAddComponentButton();
+        void ShowAddComponentMenu(QPushButton* button);
 
     private:
         entt::registry& m_registry;

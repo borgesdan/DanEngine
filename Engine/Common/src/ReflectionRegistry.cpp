@@ -9,49 +9,49 @@
 #include <entt/entt.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
+
 namespace Dan::Reflection {
 
-	using namespace entt::literals;
+    using namespace entt::literals;
 
-	// =========================================================================
-	// Helpers de Acoplamento Dinâmico (Necessário para o SceneSerializer genérico)
-	// =========================================================================
-	template<typename Component>
-	static void AssignComponent(
-		entt::registry& registry,
-		entt::entity entity,
-		const Component& instance)
-	{
-		registry.emplace_or_replace<Component>(entity, instance);
-	}
+    // Helpers de Lifecycle de Componentes no EnTT
+    template<typename Component>
+    static void AssignComponent(entt::registry& registry, entt::entity entity, const Component& instance) {
+        registry.emplace_or_replace<Component>(entity, instance);
+    }
 
-	template<typename Component>
-	static entt::meta_any GetComponent(entt::registry& registry, entt::entity entity)
-	{
-		if (auto* comp = registry.try_get<Component>(entity)) {
-			// forward_as_meta cria um ponteiro opaco sem copiar o objeto em memória
-			return entt::forward_as_meta(*comp);
-		}
-		return entt::meta_any{};
-	}
+    template<typename Component>
+    static entt::meta_any GetComponent(entt::registry& registry, entt::entity entity) {
+        if (auto* comp = registry.try_get<Component>(entity)) {
+            return entt::forward_as_meta(*comp);
+        }
+        return entt::meta_any{};
+    }
 
-	// Macro auxiliar para reduzir o boilerplate no registro de componentes de Entidade
+    template<typename Component>
+    static void EmplaceComponent(entt::registry& registry, entt::entity entity) {
+        registry.emplace_or_replace<Component>(entity);
+    }
+
+    template<typename Component>
+    static void RemoveComponent(entt::registry& registry, entt::entity entity) {
+        registry.remove<Component>(entity);
+    }
+
+    // Macro atualizada com funções de atribuição, leitura, alocação e remoção
 #define REGISTER_COMPONENT(Type, Name) \
         entt::meta_factory<Type>() \
-            .type(Name##_hs, Name) \
+            .type(entt::hashed_string(Name), Name) \
             .func<&AssignComponent<Type>>("assign"_hs) \
-            .func<&GetComponent<Type>>("get"_hs)
+            .func<&GetComponent<Type>>("get"_hs) \
+            .func<&EmplaceComponent<Type>>("emplace"_hs) \
+            .func<&RemoveComponent<Type>>("remove"_hs)
 
-	// Encadeia a reflexão de um membro de dados (variável/campo da struct)
 #define REGISTER_FIELD(Class, Field, Name) \
-        .data<&Class::Field>(entt::hashed_string{Name}, Name)
+        .data<&Class::Field>(entt::hashed_string(Name), Name)
 
-	// =========================================================================
-	// Registro Principal
-	// =========================================================================
-	void RegisterEngineTypes()
-	{
-
+    void RegisterEngineTypes()
+    {
         // 1. Tipos Matemáticos e Primitivos
         entt::meta_factory<std::string>().type("String"_hs, "String");
         entt::meta_factory<Math::Vec3>().type("Vec3"_hs, "Vec3");
@@ -97,7 +97,6 @@ namespace Dan::Reflection {
             REGISTER_FIELD(RigidBodyComponent, motionType, "MotionType")
             REGISTER_FIELD(RigidBodyComponent, mass, "Mass")
             REGISTER_FIELD(RigidBodyComponent, allowSleeping, "AllowSleeping");
-
-	}
+    }
 
 } // namespace Dan::Reflection

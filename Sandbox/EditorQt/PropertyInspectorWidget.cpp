@@ -5,8 +5,8 @@
 #include <Dan/Common/Components/TagComponent.hpp>
 
 #include <QHBoxLayout>
+#include <QToolButton>
 #include <glm/gtc/quaternion.hpp>
-#include "pch.hpp"
 
 using namespace entt::literals;
 
@@ -73,6 +73,9 @@ namespace Dan {
 
             m_mainLayout->addWidget(group);
         }
+
+        // 4. Desenha o Botão "+ Add Component" no rodapé
+        DrawAddComponentButton();
     }
 
     void PropertyInspectorWidget::DrawGeneralHeader()
@@ -129,8 +132,45 @@ namespace Dan {
         std::string typeName(metaType.name());
         if (typeName.empty()) typeName = "Component";
 
-        QGroupBox* group = new QGroupBox(QString::fromStdString(typeName), m_containerWidget);
-        QFormLayout* formLayout = new QFormLayout(group);
+        QGroupBox* group = new QGroupBox(m_containerWidget);
+        QVBoxLayout* groupLayout = new QVBoxLayout(group);
+        groupLayout->setContentsMargins(6, 6, 6, 6);
+
+        // Barra de Título Customizada com Botão de Remoção "X"
+        QWidget* titleHeader = new QWidget(group);
+        QHBoxLayout* titleLayout = new QHBoxLayout(titleHeader);
+        titleLayout->setContentsMargins(0, 0, 0, 0);
+
+        QLabel* titleLabel = new QLabel(QString::fromStdString(typeName), titleHeader);
+        titleLabel->setStyleSheet("font-weight: bold; font-size: 11px;");
+        titleLayout->addWidget(titleLabel);
+        titleLayout->addStretch();
+
+        // Não permite remover o Transform obrigatório das entidades
+        if (metaType.id() != "Transform"_hs)
+        {
+            QToolButton* removeBtn = new QToolButton(titleHeader);
+            removeBtn->setText("X");
+            removeBtn->setStyleSheet("QToolButton { color: #ff5555; font-weight: bold; border: none; } QToolButton:hover { color: #ff0000; }");
+            removeBtn->setToolTip("Remover Componente");
+
+            connect(removeBtn, &QToolButton::clicked, [this, metaType]() {
+                if (m_selectedEntity == entt::null || !m_registry.valid(m_selectedEntity)) return;
+
+                if (auto removeFunc = metaType.func("remove"_hs); removeFunc) {
+                    removeFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
+                    InspectEntity(m_selectedEntity); // Redesenha a UI
+                }
+                });
+
+            titleLayout->addWidget(removeBtn);
+        }
+
+        groupLayout->addWidget(titleHeader);
+
+        // Formulário de Campos
+        QFormLayout* formLayout = new QFormLayout();
+        groupLayout->addLayout(formLayout);
 
         for (auto [fieldId, metaData] : metaType.data())
         {
@@ -152,7 +192,6 @@ namespace Dan {
         entt::meta_type parentType = compInstance.type();
         QString labelText = QString::fromStdString(fieldName);
 
-        // Helper para atualizar e reinjetar no ECS
         auto updateFieldInECS = [this, parentType, metaData](auto newValue) {
             if (auto getFunc = parentType.func("get"_hs); getFunc) {
                 entt::meta_any freshInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
@@ -193,7 +232,7 @@ namespace Dan {
 
             formLayout->addRow(labelText, spin);
         }
-        // 3. int / int32_t / uint32_t
+        // 3. int / uint32_t
         else if (propType == entt::resolve<int>() || propType == entt::resolve<uint32_t>())
         {
             QSpinBox* spin = new QSpinBox();
@@ -317,7 +356,7 @@ namespace Dan {
 
             formLayout->addRow(labelText, vecWidget);
         }
-        // 8. glm::quat (Convertido para Euler em graus)
+        // 8. glm::quat
         else if (propType == entt::resolve<glm::quat>())
         {
             glm::quat q = propValue.cast<glm::quat>();
@@ -385,6 +424,82 @@ namespace Dan {
 
             formLayout->addRow(labelText, combo);
         }
+    }
+
+    // =========================================================================
+    // PASSO 3.C: BOTÃO "+ ADD COMPONENT" E MENU SUSPENSO DINÂMICO
+    // =========================================================================
+    void PropertyInspectorWidget::DrawAddComponentButton()
+    {
+        QPushButton* addCompBtn = new QPushButton("+ Add Component", m_containerWidget);
+        addCompBtn->setStyleSheet(
+            "QPushButton { background-color: #2b5b84; color: white; font-weight: bold; padding: 6px; border-radius: 3px; }"
+            "QPushButton:hover { background-color: #3872a4; }"
+        );
+
+        connect(addCompBtn, &QPushButton::clicked, [this, addCompBtn]() {
+            ShowAddComponentMenu(addCompBtn);
+            });
+
+        m_mainLayout->addSpacing(10);
+        m_mainLayout->addWidget(addCompBtn);
+    }
+
+    void PropertyInspectorWidget::ShowAddComponentMenu(QPushButton* button)
+    {
+        if (m_selectedEntity == entt::null || !m_registry.valid(m_selectedEntity)) return;
+
+        // Utiliza button->window() para definir a QMainWindow (Top-Level) como pai do QMenu
+        QMenu menu(button->window());
+        int availableComponentsCount = 0;
+
+        // Varre todos os tipos registrados na reflexão do EnTT
+        for (auto [typeId, metaType] : entt::resolve())
+        {
+            // Ignora tipos utilitários ou TagComponent
+            if (metaType.id() == "TagComponent"_hs || metaType.id() == "String"_hs ||
+                metaType.id() == "Vec3"_hs || metaType.id() == "Vec4"_hs ||
+                metaType.id() == "Quat"_hs || metaType.id() == "MotionType"_hs)
+            {
+                continue;
+            }
+
+            // Testa se a entidade já possui este componente
+            bool alreadyHasComponent = false;
+            if (auto getFunc = metaType.func("get"_hs); getFunc)
+            {
+                entt::meta_any compInstance = getFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
+                if (compInstance) {
+                    alreadyHasComponent = true;
+                }
+            }
+
+            // Exibe apenas os componentes que a entidade NÃO possui
+            if (!alreadyHasComponent)
+            {
+                std::string typeName(metaType.name());
+                if (typeName.empty()) continue;
+
+                QAction* action = menu.addAction(QString::fromStdString(typeName));
+
+                connect(action, &QAction::triggered, [this, metaType]() {
+                    if (auto emplaceFunc = metaType.func("emplace"_hs); emplaceFunc) {
+                        emplaceFunc.invoke({}, entt::forward_as_meta(m_registry), m_selectedEntity);
+                        InspectEntity(m_selectedEntity); // Redesenha a UI
+                    }
+                    });
+
+                availableComponentsCount++;
+            }
+        }
+
+        if (availableComponentsCount == 0) {
+            QAction* disabledAction = menu.addAction("Todos os componentes já foram adicionados.");
+            disabledAction->setEnabled(false);
+        }
+
+        // Abre o menu suspenso alinhado ao botão "+ Add Component"
+        menu.exec(button->mapToGlobal(QPoint(0, button->height())));
     }
 
     void PropertyInspectorWidget::ClearLayout()
